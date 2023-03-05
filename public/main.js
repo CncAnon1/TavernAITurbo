@@ -810,7 +810,7 @@ async function Generate(type) {
                     if (i >= openai_msgs.length - 1 && $.trim(item).substr(0, (name1 + ":").length) != name1 + ":") {
                         if (textareaText == "") {
                             // TODO: Why is this needed? it removes the last letter
-                            item = item.substr(0, item.length - 1);
+                            //item = item.substr(0, item.length - 1);
                         }
                     }
                     if (i === openai_msgs.length - topAnchorDepth && count_view_mes >= topAnchorDepth && !is_add_personality) {
