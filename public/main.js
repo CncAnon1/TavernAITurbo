@@ -172,7 +172,6 @@ function replacePlaceholders(text) {
 function parseExampleIntoIndividual(messageExampleString) {
     let result = []; // array of msgs
     let tmp = messageExampleString.split("\n");
-
     var cur_msg_lines = [];
     let in_user = false;
     let in_bot = false;
@@ -1802,28 +1801,39 @@ $("#form_create").submit(function (e) {
 
                 $("#add_avatar_button").replaceWith($("#add_avatar_button").val('').clone(true));
                 $('#create_button').attr('value', 'Save');
-                // TODO: COUNT TOKENS
                 function getTokensForPart(text) {
                     let msg = {"role": "system", content: text.replace("\r\n", "\n")};
-                    let result = countTokens(msg) - 4 - 2 - 1;
+                    let result = countTokens(msg) - 4 - 1;
                     return result;
                 }
-                // make count for description, personality, scenario, example messages
                 let desc_tokens = getTokensForPart(characters[this_chid].description);
                 let pers_tokens = getTokensForPart(characters[this_chid].personality);
                 let scen_tokens = getTokensForPart(characters[this_chid].scenario);
-                let exmp_tokens = getTokensForPart(characters[this_chid].mes_example);
+                
+                // ugly but that's what we have, have to replicate the normal example message parsing code
+                let blocks = replacePlaceholders(characters[this_chid].mes_example).split(/<START>/gi);
+                console.log(blocks);
+                let example_msgs_array = blocks.slice(1).map(block => `<START>\n${block.trim()}\n`);
+                console.log(example_msgs_array);
+                let exmp_tokens = 0;
+                let block_count = 0;
+                let msg_count = 0;
+                for (var block of example_msgs_array) {
+                    block_count++;
+
+                    let example_blocks = parseExampleIntoIndividual(block);
+                
+                    for (var block of example_blocks) {
+                        exmp_tokens += countTokens(block);
+                        msg_count += example_blocks.length;
+                    }
+                }
                 let count_tokens = desc_tokens + pers_tokens + scen_tokens + exmp_tokens;
 
-                let example_blocks = parseExampleIntoIndividual(characters[this_chid].mes_example);
-                let message_text = `Found ${example_blocks.length} example blocks with ${example_blocks.flat().length} messages in total`;
-                console.log(message_text);
+                let message_text = `Found ${block_count} example message blocks with ${msg_count} messages in total (${exmp_tokens} tokens)`;
+                let res_str = `Total: ${count_tokens} tokens. \nDescription: ${desc_tokens}. Personality: ${pers_tokens}\nScenario: ${scen_tokens}\n${message_text}`;
 
-                // make a message specifying individual parts of the prompt 
-                // like "description: 100 tokens, personality: 200 tokens, scenario: 300 tokens, example message: 400 tokens"
-                let res_str = `Total: ${count_tokens} tokens, D: ${desc_tokens}, P: ${pers_tokens}, S: ${scen_tokens}, M: ${exmp_tokens}`;
 
-                // 4 for each "message" + 7 for role: system with empty content
                 if (count_tokens < 1024) {
                     $('#result_info').html(res_str);
                 } else {

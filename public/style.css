@@ -752,9 +752,15 @@ input[type=button] {
     margin-right: 16px; 
     color: #ffffff68;
 }
+#export_character_div {
+    word-wrap: break-word; 
+    white-space: pre-line;
+}
+
 #result_info{
     margin-left: 10px;
     size: 10px;
+    width: 300px;
     color: #ffffff33;
 }
 
@@ -1478,10 +1484,7 @@ label.checkbox :checked + span:after {
     margin-left: 38px;
 }
 
-#export_character_div{
-    display: grid;
-    grid-template-columns: 340px auto;
-}
+
 
 
 /* css/style.css */
