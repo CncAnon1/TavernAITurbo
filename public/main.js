@@ -299,7 +299,7 @@ $.get("/csrf-token")
         }
     }
 
-    function countTokens(messages, full) {
+    function countTokens(messages, full = false) {
         if (!Array.isArray(messages)) {
             messages = [messages];
         }
@@ -687,10 +687,6 @@ $.get("/csrf-token")
             //***Base replace***
             if(mesExamples !== undefined){
                 if(mesExamples.length > 0){
-                    if(is_pygmalion){
-                        mesExamples = mesExamples.replace(/{{user}}:/gi, 'You:');
-                        mesExamples = mesExamples.replace(/<USER>:/gi, 'You:');
-                    }
                     mesExamples = mesExamples.replace(/{{user}}/gi, name1);
                     mesExamples = mesExamples.replace(/{{char}}/gi, name2);
                     mesExamples = mesExamples.replace(/<USER>/gi, name1);
@@ -725,49 +721,18 @@ $.get("/csrf-token")
                 }
             }
             
-            
-            if(is_pygmalion){
-                if(charDescription.length > 0){
-                    storyString = name2+"'s Persona: "+charDescription+"\n";
-                }
-                if(charPersonality.length > 0){
-                    storyString+= 'Personality: '+charPersonality+'\n';
-                }
-                if(Scenario.length > 0){
-                    storyString+= 'Scenario: '+Scenario+'\n';
-                }
-            }
-            else if(main_api == "openai") {
-                if(charDescription.length > 0){
-                    storyString = '{Description:}\n'+charDescription.replace('\r\n','\n')+'\n';
-                }
-                if(charPersonality.length > 0){
-                    storyString+= '{Personality:}\n'+charPersonality.replace('\r\n','\n')+'\n';
-                }
-                if(Scenario.length > 0){
-                    storyString+= '{Scenario:}\n'+Scenario.replace('\r\n','\n')+'\n';
-                }
-            }else{
-                if(charDescription !== undefined){
-                    if(charPersonality.length > 0){
-                        charPersonality = name2+"'s personality: "+charPersonality;//"["+name2+"'s personality: "+charPersonality+"]";
-                    }
-                }
-                if(charDescription !== undefined){
-                    if($.trim(charDescription).length > 0){
-                        if(charDescription.slice(-1) !== ']' || charDescription.substr(0,1) !== '['){
-                            //charDescription = '['+charDescription+']';
-                        }
-                        storyString+=charDescription+'\n';
-                    }
-                }
+        
 
-                if(count_view_mes < topAnchorDepth){
-                    storyString+=charPersonality+'\n';
-                }
-                
-                
+            if(charDescription.length > 0){
+                storyString = '{Description:}\n'+charDescription.replace('\r\n','\n')+'\n';
             }
+            if(charPersonality.length > 0){
+                storyString+= '{Personality:}\n'+charPersonality.replace('\r\n','\n')+'\n';
+            }
+            if(Scenario.length > 0){
+                storyString+= '{Scenario:}\n'+Scenario.replace('\r\n','\n')+'\n';
+            }
+
             
             var count_exm_add = 0;
             var chat2 = [];
@@ -951,8 +916,8 @@ $.get("/csrf-token")
 
                 // todo: static value, maybe include in the initial context calculation
                 let new_chat_msg = {"role": "system", "content": "[Start a new chat]"};
-                let start_chat_count = countTokens(new_chat_msg) - 2;
-                let total_count = countTokens([starting_msg]) + start_chat_count;
+                let start_chat_count = countTokens([new_chat_msg]);
+                let total_count = countTokens([starting_msg], true) + start_chat_count;
                 
 
                 // The user wants to always have all example messages in the context
@@ -974,10 +939,10 @@ $.get("/csrf-token")
                             examples_tosend.push(example_block[k]);
                         }
                     }
-                    total_count += countTokens(examples_tosend) - 2;
+                    total_count += countTokens(examples_tosend);
                     for (let j = 0; j < openai_msgs.length; j++) {
                         let item = openai_msgs[j];
-                        let item_count = countTokens(item) - 2;
+                        let item_count = countTokens(item);
                         // If we have enough space for this message, also account for the max assistant reply size
                         if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
                             openai_msgs_tosend.push(item);
@@ -993,7 +958,7 @@ $.get("/csrf-token")
                 } else {
                     for (let j = 0; j < openai_msgs.length; j++) {
                         let item = openai_msgs[j];
-                        let item_count = countTokens(item) - 2;
+                        let item_count = countTokens(item);
                         console.log(item_count);
                         // If we have enough space for this message, also account for the max assistant reply size
                         if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
@@ -1034,9 +999,14 @@ $.get("/csrf-token")
 
                         for (let k = 0; k < example_block.length; k++) {
                             // add all the messages from the example
-                            let example_count = countTokens(example_block[k]) - 2;
+                            if (example_block.length == 0) {continue;}
+                            let example_count = countTokens(example_block[k]);
                             if ((total_count + example_count) < (this_max_context - openai_max_tokens)) {
-                                examples_tosend.push(example_block[k]);
+                                if (k == 0) {
+                                    examples_tosend.push(new_chat_msg);
+                                    total_count += start_chat_count;
+                                }
+                                temp.push(example_block[k]);
                                 total_count += example_count;
                             }
                             else {break;}
@@ -1047,7 +1017,7 @@ $.get("/csrf-token")
                 openai_msgs_tosend = [starting_msg, ...examples_tosend, new_chat_msg, ...openai_msgs]
 
                 console.log(openai_msgs_tosend);
-                console.log(countTokens(openai_msgs_tosend));
+                console.log(countTokens(openai_msgs_tosend, true));
                 console.log(total_count);
 
                 var this_settings = openai_settings[openai_setting_names[preset_settings_openai]];
