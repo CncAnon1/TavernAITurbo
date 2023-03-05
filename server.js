@@ -21,6 +21,8 @@ const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const ipaddr = require('ipaddr.js');
 
+const tiktoken = require('@dqbd/tiktoken');
+
 const config = require(path.join(process.cwd(), './config.conf'));
 const server_port = config.port;
 const whitelist = config.whitelist;
@@ -1009,13 +1011,13 @@ app.post("/generate_openai", jsonParser, function(request, response_generate_ope
     console.log(request.body);
     var config = {
         method: 'post',
-        url: api_openai + '/completions',
+        url: api_openai + '/chat/completions',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + api_key_openai
         },
         data: {
-            "prompt": request.body.prompt,
+            "messages": request.body.messages,
             "model": request.body.model,
             "temperature": request.body.temperature,
             "max_tokens": request.body.max_tokens,
@@ -1075,6 +1077,55 @@ app.post("/generate_openai", jsonParser, function(request, response_generate_ope
             }
             response_generate_openai.send({ error: true });
         });
+});
+
+const turbo_encoder = tiktoken.get_encoding("cl100k_base");
+
+// js port of https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+// section 6
+function count_tokens(encoding, messages) {
+    let num_tokens = 0;
+    for (var msg of request.body) {
+        num_tokens += 4;
+        for (const [key, value] of Object.entries(msg)) {
+            num_tokens += encoding.encode(value).length;
+            if (key == "name") {
+                num_tokens += -1;
+            }
+        }
+    }
+    num_tokens += 2;
+    return num_tokens;
+}
+
+/*
+var test_messages = [
+    {"role": "system", "content": "You are a helpful, pattern-following assistant that translates corporate jargon into plain English."},
+    {"role": "system", "name":"example_user", "content": "New synergies will help drive top-line growth."},
+    {"role": "system", "name": "example_assistant", "content": "Things working well together will increase revenue."},
+    {"role": "system", "name":"example_user", "content": "Let's circle back when we have more bandwidth to touch base on opportunities for increased leverage."},
+    {"role": "system", "name": "example_assistant", "content": "Let's talk later when we're less busy about how to do better."},
+    {"role": "user", "content": "This late pivot means we don't have time to boil the ocean for the client deliverable."},
+];
+console.log(count_tokens(turbo_encoder, test_messages));
+*/
+
+app.post("/tokenize_openai", jsonParser, function(request, response_tokenize_openai = response){
+    if(!request.body) return response_tokenize_openai.sendStatus(400);
+
+    let num_tokens = 0;
+    for (var msg of request.body) {
+        num_tokens += 4;
+        for (const [key, value] of Object.entries(msg)) {
+            num_tokens += turbo_encoder.encode(value).length;
+            if (key == "name") {
+                num_tokens += -1;
+            }
+        }
+    }
+    num_tokens += 2;
+    
+    response_getstatus_openai.send({"token_count": num_tokens});
 });
 
 function getPngName(file){
