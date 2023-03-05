@@ -639,7 +639,7 @@ async function Generate(type) {
         var userSendString = "";
         var finalPromt = "";
 
-        var postAnchorChar = "talks a lot with descriptions";//'Talk a lot with description what is going on around';// in asterisks
+        var postAnchorChar = "Elaborate speaker";//'Talk a lot with description what is going on around';// in asterisks
         var postAnchorStyle = "Writing style: very long messages";//"[Genre: roleplay chat][Tone: very long messages with descriptions]";
 
 
@@ -649,16 +649,16 @@ async function Generate(type) {
 
         if (character_anchor && !is_pygmalion) {
             if (anchor_order === 0) {
-                anchorTop = name2 + " " + postAnchorChar;
+                anchorTop = `${name2}: ${postAnchorChar}`;
             } else {
-                anchorBottom = "[" + name2 + " " + postAnchorChar + "]";
+                anchorBottom = `[${name2} ${postAnchorChar}]`
             }
         }
         if (style_anchor && !is_pygmalion) {
             if (anchor_order === 1) {
                 anchorTop = postAnchorStyle;
             } else {
-                anchorBottom = "[" + postAnchorStyle + "]";
+                anchorBottom = `[${postAnchorStyle}]`;
             }
         }
 
@@ -823,8 +823,9 @@ async function Generate(type) {
                             item += "[" + charPersonality + anchorTop + ']\n';
                         }
                     }
-                    if (i >= openai_msgs.length - 1 && count_view_mes > 8 && $.trim(item).substr(0, (name1 + ":").length) == name1 + ":" && !is_pygmalion) {//For add anchor in end
-                        item = item.substr(0, item.length - 1);
+                    if (i >= openai_msgs.length - 1 && count_view_mes > 8 && $.trim(item).substr(0, (name1 + ":").length) == name1 + ":") {//For add anchor in end
+                        //not sure what these are for
+                        //item = item.substr(0, item.length - 1);
                         //chatString+=postAnchor+"\n";//"[Writing style: very long messages]\n";
                         item = item + anchorBottom + "\n";
                     }
