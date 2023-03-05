@@ -1,0 +1,11 @@
+{
+  "name": "tiktoken",
+  "version": "0.2.0",
+  "files": [
+    "_tiktoken_bg.wasm",
+    "_tiktoken.js",
+    "_tiktoken.d.ts"
+  ],
+  "browser": "_tiktoken.js",
+  "types": "_tiktoken.d.ts"
+}

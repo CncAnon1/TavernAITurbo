@@ -1,0 +1,32 @@
+TavernAI UI 
+pre-v1.3 release beta
+working on TavernAI v1.2.8
+
+by RossAscends (discord: RossAscends#1779)
+
+FEATURES
+- smoother fonts
+- stylish transprant/blurred UI panels
+- chat history text viewable over any selected background
+- AI API connection indicator in the input bar
+- input bar expands vertically to fit input text size, up to 50% of the window height
+- more user avatars visible in the settings panel
+- rounded character avatars
+
+
+KNOWN ISSUES
+
+- curently the update notification does not work, but the listed version number at top left will always link you to the github
+
+HOW TO INSTALL
+
+1. Unzip the contents of the zip into a temporary directory (or just open it in a zip program)
+2. Move the contents of the zip into your TAI base directory.
+	- this will overwrite the following files: 
+
+/server.js
+/public/index.html
+/public/style.css
+/public/css/bg_load.css
+
+3. restart TavernAI server.
