@@ -993,9 +993,8 @@ async function Generate(type) {
                     for (let k = 0; k < example_block.length; k++) {
                         if (example_block.length == 0) { continue; }
                         let example_count = countTokens(example_block[k]);
-                        if (k == 0) example_count += start_chat_count;
                         // add all the messages from the example
-                        if ((total_count + example_count) < (this_max_context - openai_max_tokens)) {
+                        if ((total_count + example_count + start_chat_count) < (this_max_context - openai_max_tokens)) {
                             if (k == 0) {
                                 examples_tosend.push(new_chat_msg);
                                 total_count += start_chat_count;
