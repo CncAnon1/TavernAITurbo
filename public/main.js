@@ -84,7 +84,7 @@ var user_avatar = 'you.png';
 var temp = 0.5;
 var amount_gen = 80;
 var max_context = 2048;//2048;
-var openai_max_context = 2048;
+var openai_max_context = 4095;
 var rep_pen = 1;
 var rep_pen_size = 100;
 
@@ -2423,12 +2423,12 @@ async function getSettings(type) {//timer
                 $('#rep_pen_size_novel').val(rep_pen_size_novel);
                 $('#rep_pen_size_counter_novel').html(rep_pen_size_novel + " Tokens");
 
-                //OpenAI
-                temp_openai = settings.temp_openai;
-                freq_pen_openai = settings.freq_pen_openai;
-                pres_pen_openai = settings.pres_pen_openai;
-                stream_openai = settings.stream_openai;
-                openai_max_context = settings.openai_max_context;
+                //OpenAI, with default settings too
+                temp_openai = settings.temp_openai ?? 0.9;
+                freq_pen_openai = settings.freq_pen_openai ?? 0.7;
+                pres_pen_openai = settings.pres_pen_openai ?? 0.7;
+                stream_openai = settings.stream_openai ?? true;
+                openai_max_context = settings.openai_max_context ?? 4095;
                 if (settings.nsfw_toggle !== undefined) nsfw_toggle = !!settings.nsfw_toggle;
                 if (settings.keep_example_dialogue !== undefined) keep_example_dialogue = !!settings.keep_example_dialogue;
                 if (settings.enhance_definitions !== undefined) enhance_definitions = !!settings.enhance_definitions;
