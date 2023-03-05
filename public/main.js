@@ -938,14 +938,13 @@ async function Generate(type) {
                     }
                 }
                 total_count += countTokens(examples_tosend);
-                for (let j = 0; j < openai_msgs.length; j++) {
+                // go from newest message to oldest, because we want to delete the older ones from the context
+                for (let j = openai_msgs.length - 1; j >= 0; j--) {
                     let item = openai_msgs[j];
                     let item_count = countTokens(item);
                     // If we have enough space for this message, also account for the max assistant reply size
                     if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
                         openai_msgs_tosend.push(item);
-                        // -2 because "every reply is primed with <im_start>assistant" from section 6 openai tiktoken ipynb
-                        // and that's already accounted by the countTokens call in startCount
                         total_count += item_count;
                     }
                     else {
@@ -954,8 +953,9 @@ async function Generate(type) {
                     }
                 }
             } else {
-                for (let j = 0; j < openai_msgs.length; j++) {
+                for (let j = openai_msgs.length - 1; j >= 0; j--) {
                     let item = openai_msgs[j];
+                    console.log(item);
                     let item_count = countTokens(item);
                     // If we have enough space for this message, also account for the max assistant reply size
                     if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
@@ -1006,7 +1006,9 @@ async function Generate(type) {
                     }
                 }
             }
-
+            // reverse the messages array because we had the newest at the top to remove the oldest,
+            // now we want proper order
+            openai_msgs_tosend.reverse();
             openai_msgs_tosend = [prompt_msg, ...examples_tosend, new_chat_msg, ...openai_msgs_tosend]
 
             console.log(openai_msgs_tosend);
