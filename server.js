@@ -1125,7 +1125,7 @@ app.post("/tokenize_openai", jsonParser, function(request, response_tokenize_ope
     }
     num_tokens += 2;
     
-    response_getstatus_openai.send({"token_count": num_tokens});
+    response_tokenize_openai.send({"token_count": num_tokens});
 });
 
 function getPngName(file){

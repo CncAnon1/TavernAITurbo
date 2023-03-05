@@ -293,6 +293,21 @@ $.get("/csrf-token")
             }
         }
     }
+
+    async function countTokens(messages) {
+        var token_count = -1;
+        jQuery.ajax({    
+            type: 'POST', // 
+            url: '/tokenize_openai', // 
+            data: JSON.stringify(messages),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(data) {
+                token_count = data.token_count;
+            }
+        });
+        return token_count;
+    }
     
     function resultCheckStatus(){
         is_api_button_press = false;  
@@ -791,6 +806,8 @@ $.get("/csrf-token")
             for (let k = 0; k < chat2.length; k++) {
                 let item = chat2[i];
                 chatString = item+chatString;
+                let tokenCount = await countTokens(openai_msgs);
+                console.log(tokenCount);    
                 if(encode(JSON.stringify(storyString+chatString+anchorTop+anchorBottom+charPersonality)).length+120 < this_max_context){ //(The number of tokens in the entire promt) need fix, it must count correctly (added +120, so that the description of the character does not hide)
                     
                     
