@@ -1,3 +1,6 @@
 node_modules
 public/characters
 public/chats
+!public/characters/Aqua.png
+!public/characters/Darkness.png
+!public/characters/Megumin.png
