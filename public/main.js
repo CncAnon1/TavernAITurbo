@@ -968,9 +968,9 @@ async function Generate(type) {
             openai_msgs_tosend.reverse();
             openai_msgs_tosend = [prompt_msg, ...examples_tosend, new_chat_msg, ...openai_msgs_tosend]
 
+            console.log("We're sending this:")
             console.log(openai_msgs_tosend);
-            console.log(countTokens(openai_msgs_tosend, true));
-            console.log(total_count);
+            console.log(`Calculated the total context to be ${total_count} tokens`);
 
             var this_settings = openai_settings[openai_setting_names[preset_settings_openai]];
             var generate_data = {
@@ -1812,9 +1812,7 @@ $("#form_create").submit(function (e) {
                 
                 // ugly but that's what we have, have to replicate the normal example message parsing code
                 let blocks = replacePlaceholders(characters[this_chid].mes_example).split(/<START>/gi);
-                console.log(blocks);
                 let example_msgs_array = blocks.slice(1).map(block => `<START>\n${block.trim()}\n`);
-                console.log(example_msgs_array);
                 let exmp_tokens = 0;
                 let block_count = 0;
                 let msg_count = 0;
