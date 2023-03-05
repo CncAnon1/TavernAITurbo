@@ -1,6 +1,9 @@
 import {encode, decode} from "../scripts/gpt-2-3-tokenizer/mod.js";
+// todo after fixing most stuff:
+// format this script with vscode
+// remove document ready function wrapper and just move the script to the bottom of index.html so it still waits for DOM
 $(document).ready(function(){
-    const VERSION = '1.2.8';
+    const VERSION = '1.2    .8';
     var converter = new showdown.Converter();
     var bg_menu_toggle = false;
     var default_user_name = "You";
@@ -82,7 +85,7 @@ $(document).ready(function(){
     var temp = 0.5;
     var amount_gen = 80;
     var max_context = 2048;//2048;
-var openai_max_context = 2048;
+    var openai_max_context = 2048;
     var rep_pen = 1;
     var rep_pen_size = 100;
     
@@ -120,6 +123,8 @@ var openai_max_context = 2048;
     var openai_settings; 
     var openai_setting_names; 
     var preset_settings_openai = 'Default';
+    
+    var openai_max_tokens = 300;
 
     var openai_msgs = [];
     var openai_msgs_example = [];
@@ -294,9 +299,13 @@ $.get("/csrf-token")
         }
     }
 
-    async function countTokens(messages) {
+    function countTokens(messages, full) {
+        if (!Array.isArray(messages)) {
+            messages = [messages];
+        }
         var token_count = -1;
-        jQuery.ajax({    
+        jQuery.ajax({
+            async: false,
             type: 'POST', // 
             url: '/tokenize_openai', // 
             data: JSON.stringify(messages),
@@ -306,6 +315,7 @@ $.get("/csrf-token")
                 token_count = data.token_count;
             }
         });
+        if (!full) token_count -= 2;
         return token_count;
     }
     
@@ -726,11 +736,12 @@ $.get("/csrf-token")
                 if(Scenario.length > 0){
                     storyString+= 'Scenario: '+Scenario+'\n';
                 }
-  }else if(main_api == "openai") {
+            }
+            else if(main_api == "openai") {
                 if(charDescription.length > 0){
                     storyString = '{Description:}\n'+charDescription.replace('\r\n','\n')+'\n';
                 }
-    if(charPersonality.length > 0){
+                if(charPersonality.length > 0){
                     storyString+= '{Personality:}\n'+charPersonality.replace('\r\n','\n')+'\n';
                 }
                 if(Scenario.length > 0){
@@ -773,10 +784,10 @@ $.get("/csrf-token")
                 }
                 let this_mes_ch_name = '';
                 if(chat[j]['is_user']){
-                    chat2_openai[i] = {"role": "user", "content": chat[j]['mes']};
+                    openai_msgs[i] = {"role": "user", "content": chat[j]['mes']};
                     this_mes_ch_name = name1;
                 }else{
-                    chat2_openai[i] = {"role": "assistant", "content": chat[j]['mes']};
+                    openai_msgs[i] = {"role": "assistant", "content": chat[j]['mes']};
                     this_mes_ch_name = name2;
                 }
                 if(chat[j]['is_name']){
@@ -786,83 +797,108 @@ $.get("/csrf-token")
                 }
                 j++;
             }
+            console.log(openai_msgs);
             //chat2 = chat2.reverse();
-            var this_max_context = 4096-350;
-            if(main_api == 'kobold') this_max_context = max_context;
-  if(main_api == 'openai') this_max_context = openai_max_context;
-            if(main_api == 'novel'){
-                if(novel_tier === 1){
-                    this_max_context = 1024;
-                }else{
-                    this_max_context = 2048-60;//fix for fat tokens 
-                    if(model_novel == 'krake-v2'){
-                        this_max_context-=160;
-                    }
-                }
-            }
-            if(main_api == 'openai') this_max_context = 2048;
+            // actually 4096 but be on the safer side. but instead of making this lower we should make sure we count 100% of all tokens before sending.
+            var this_max_context = 4000;
+            if(main_api == 'openai') this_max_context = openai_max_context;
+
             var i = 0;
             
-            for (let k = 0; k < chat2.length; k++) {
-                let item = chat2[i];
-                chatString = item+chatString;
-                let tokenCount = await countTokens(openai_msgs);
-                console.log(tokenCount);    
-                if(encode(JSON.stringify(storyString+chatString+anchorTop+anchorBottom+charPersonality)).length+120 < this_max_context){ //(The number of tokens in the entire promt) need fix, it must count correctly (added +120, so that the description of the character does not hide)
-                    
-                    
-                    //if (is_pygmalion && i == chat2.length-1) item='<START>\n'+item;
-                    arrMes[arrMes.length] = item;
-                    openai_msgs[openai_msgs.length] = chat2_openai[i];
-                }else{
-                    i = chat.length-1;
-                }
-                await delay(1); //For disable slow down (encode gpt-2 need fix)
-                //console.log(i+' '+chat.length);
-                count_exm_add = 0;
-                if(i == chat.length-1){
-                    //arrMes[arrMes.length-1] = '<START>\n'+arrMes[arrMes.length-1];
-                    let mesExmString = '';
-                    for(let iii = 0; iii < mesExamplesArray.length; iii++){//mesExamplesArray It need to make from end to start
-                        
-                        mesExmString = mesExmString+mesExamplesArray[iii];
-                        if(encode(JSON.stringify(storyString+mesExmString+chatString+anchorTop+anchorBottom+charPersonality)).length+120 < this_max_context || keep_example_dialogue){ //Keep example dialogue if able to
-                            if(!is_pygmalion){
-                                mesExamplesArray[iii] = mesExamplesArray[iii].replace(/<START>/i, "{Example Dialogue:}").replace('\r\n','\n');//An example of how '+name2+' responds
-                            }
-                            count_exm_add++;
-                            await delay(1);
+            function parseExampleIntoIndividual(messageExampleString) {
+                let result = []; // array of msgs
+                let tmp = messageExampleString.split("\n");
 
-                            //arrMes[arrMes.length] = item;
-                        }else{
-                                                        
-                            iii = mesExamplesArray.length;
-                        }
-                        
-                    }
-                    runGenerate();
-                    return;
+                var cur_msg_lines = [];
+                let in_user = false;
+                let in_bot = false;
+                // DRY my cock and balls
+                function add_msg(name, role) {
+                    // join different newlines (we split them by \n and join by \n)
+                    // remove char name
+                    // strip to remove extra spaces
+                    let parsed_msg = cur_msg_lines.join("\n").replace(name + ":", "").trim();
+                    result.push({"role": role, "content": parsed_msg});
+                    cur_msg_lines = [];
                 }
-                i++;
-                
-            
+                // skip first line as it'll always be "This is how {bot name} should talk"
+                for (let i = 1; i < tmp.length; i++) {
+                    let cur_str = tmp[i];
+                    // if it's the user message, switch into user mode and out of bot mode
+                    // yes, repeated code, but I don't care
+                    if (cur_str.indexOf(name1 + ":") === 0) {
+                        in_user = true;
+                        // we were in the bot mode previously, add the message
+                        if (in_bot) {
+                            add_msg(name2, "assistant");
+                        }
+                        in_bot = false;
+                    } else if (cur_str.indexOf(name2 + ":") === 0) {
+                        in_bot = true;
+                        // we were in the user mode previously, add the message
+                        if (in_user) {
+                            add_msg(name1, "user");
+                        }
+                        in_user = false;
+                    }
+                    // push the current line into the current message array only after checking for presence of user/bot
+                    cur_msg_lines.push(cur_str);
+                }
+                // Special case for last message in a block because we don't have a new message to trigger the switch
+                if (in_user) {
+                    add_msg(name1, "user");
+                } else if (in_bot) {
+                    add_msg(name2, "assistant");
+                }
+                return result;
             }
-            
+
+            // get a nice array of all blocks of all example messages = array of arrays (important!)
+            openai_msgs_example = [];
+            for (let k = 0; k < mesExamplesArray.length; k++) {
+                let item = mesExamplesArray[k];
+                // remove <START> {Example Dialogue:} and replace \r\n with just \n
+                item = item.replace(/<START>/i, "{Example Dialogue:}").replace('\r\n','\n');
+                let parsed = parseExampleIntoIndividual(item);
+                // add to the example message blocks array
+                openai_msgs_example.push(parsed);
+            }
+
+            /*
+            for (let k = 0; k < chat2_openai.length; k++) {
+                let item = chat2_openai[k];
+                let total_token_count = await countTokens(openai_msgs);
+                let item_token_count = await countTokens(item);
+                // If we have enough space for this message.
+                if (total_token_count + item_token_count < this_max_context) {
+                    openai_msgs[openai_msgs.length] = item;
+                }
+                else {
+                    // say that we're at the end of the chat
+                    i = chat.length - 1;
+                }
+                if (i == chat.length - 1) {
+                    // todo: add example messages that fit in the context *if* the example dialogue toggle is off
+                    runGenerate();
+                }
+            }*/
+
+            runGenerate();
+
             function runGenerate(cycleGenerationPromt = ''){
                 generatedPromtCache+=cycleGenerationPromt;
                 if(generatedPromtCache.length == 0){
-                    chatString = "";
-                    arrMes = arrMes.reverse();
                     openai_msgs = openai_msgs.reverse();
                     var is_add_personality = false;
-                    arrMes.forEach(function(item, i, arr) {//For added anchors and others
-
-                        if(i >= arrMes.length-1 && $.trim(item).substr(0, (name1+":").length) != name1+":"){
+                    openai_msgs.forEach(function(msg, i, arr) {//For added anchors and others
+                        let item = msg["content"];
+                        if(i >= openai_msgs.length-1 && $.trim(item).substr(0, (name1+":").length) != name1+":"){
                             if(textareaText == ""){
+                                // TODO: Why is this needed? it removes the last letter
                                 item = item.substr(0,item.length-1);
                             }
                         }
-                        if(i === arrMes.length-topAnchorDepth && count_view_mes>=topAnchorDepth && !is_add_personality){
+                        if(i === openai_msgs.length-topAnchorDepth && count_view_mes>=topAnchorDepth && !is_add_personality){
 
                             is_add_personality = true;
                             //chatString = chatString.substr(0,chatString.length-1);
@@ -872,126 +908,25 @@ $.get("/csrf-token")
                                 item+="["+charPersonality+anchorTop+']\n';
                             }
                         }
-                        if(i >= arrMes.length-1 && count_view_mes>8 && $.trim(item).substr(0, (name1+":").length) == name1+":" && !is_pygmalion){//For add anchor in end
+                        if(i >= openai_msgs.length-1 && count_view_mes>8 && $.trim(item).substr(0, (name1+":").length) == name1+":" && !is_pygmalion){//For add anchor in end
                             item = item.substr(0,item.length-1);
                             //chatString+=postAnchor+"\n";//"[Writing style: very long messages]\n";
                             item =item+ anchorBottom+"\n";
                         }
-                        if(is_pygmalion){
-                            if(i >= arrMes.length-1 && $.trim(item).substr(0, (name1+":").length) == name1+":"){//for add name2 when user sent
-                                item =item+name2+":";
-                            }
-                            if(i >= arrMes.length-1 && $.trim(item).substr(0, (name1+":").length) != name1+":"){//for add name2 when continue
-                                if(textareaText == ""){
-                                    item =item+'\n'+name2+":";
-                                }
-                            }
-                            if($.trim(item).indexOf(name1) === 0){
-                                item = item.replace(name1+':', 'You:');
-                            }
-                        }
-                        mesSend[mesSend.length] = item;
-                        //chatString = chatString+item;
+                        msg["content"] = item;
+                        openai_msgs[i] = msg;
                     });
                 }
-                //finalPromt +=chatString;
-                //console.log(storyString);
 
-                //console.log(encode(characters[this_chid].description+chatString).length);
-                //console.log(encode(JSON.stringify(characters[this_chid].description+chatString)).length);
                 if(type == 'force_name2'){
                     finalPromt+= name2+':';
-                }
-                //console.log(JSON.stringify(storyString));
-                //Send story string
-                var mesSendString = '';
-                var mesExmString = '';
-
-                function parseExampleIntoIndividual(messageExampleString) {
-                    let result = []; // array of msgs
-                    let tmp = messageExampleString.split("\n");
-
-                    var cur_msg_lines = [];
-                    let in_user = false;
-                    let in_bot = false;
-                    // DRY my cock and balls
-                    function add_msg(name, role) {
-                        // join different newlines (we split them by \n and join by \n)
-                        // remove char name
-                        // strip to remove extra spaces
-                        let parsed_msg = cur_msg_lines.join("\n").replace(name + ":", "").trim();
-                        result.push({"role": role, "content": parsed_msg});
-                        cur_msg_lines = [];
-                    }
-                    // skip first line as it'll always be "This is how {bot name} should talk"
-                    for (let i = 1; i < tmp.length; i++) {
-                        let cur_str = tmp[i];
-                        // if it's the user message, switch into user mode and out of bot mode
-                        // yes, repeated code, but I don't care
-                        if (cur_str.indexOf(name1 + ":") === 0) {
-                            in_user = true;
-                            // we were in the bot mode previously, add the message
-                            if (in_bot) {
-                                add_msg(name2, "assistant");
-                            }
-                            in_bot = false;
-                        } else if (cur_str.indexOf(name2 + ":") === 0) {
-                            in_bot = true;
-                            // we were in the user mode previously, add the message
-                            if (in_user) {
-                                add_msg(name1, "user");
-                            }
-                            in_user = false;
-                        }
-                        // push the current line into the current message array only after checking for presence of user/bot
-                        cur_msg_lines.push(cur_str);
-                    }
-                    // Special case for last message in a block because we don't have a new message to trigger the switch
-                    if (in_user) {
-                        add_msg(name1, "user");
-                    } else if (in_bot) {
-                        add_msg(name2, "assistant");
-                    }
-                    return result;
-                }
-
-                function setPromtString(){
-                    mesSendString = '';
-                    mesExmString = '';
-                    openai_msgs_example = []; // empty the array
-                    for(let j = 0; j < count_exm_add; j++){
-                        openai_msgs_example.push(parseExampleIntoIndividual(mesExamplesArray[j]));
-                        mesExmString+=mesExamplesArray[j];
-                    }
-                    for(let j = 0; j < mesSend.length; j++){
-                        mesSendString+=mesSend[j];
-                    }
-                }
-                function checkPromtSize(){
-                    setPromtString();
-                    let thisPromtContextSize = encode(JSON.stringify(storyString+mesExmString+mesSendString+anchorTop+anchorBottom+charPersonality+generatedPromtCache)).length+120;
-                    if(thisPromtContextSize > this_max_context){
-                        if(count_exm_add > 0 && !keep_example_dialogue){ // Shift messages instead if keeping examples
-                            //mesExamplesArray.length = mesExamplesArray.length-1;
-                            count_exm_add--;
-                            checkPromtSize();
-                        }else if(mesSend.length > 0){
-                            mesSend.shift();
-                            checkPromtSize();
-                        }else{
-                            //end
-                        }
-                    }
-                }
-
-                
-                
+                }            
+                /*
                 if(generatedPromtCache.length > 0){
                     checkPromtSize();
                 }else{
                     setPromtString();
-                }
-                if(main_api == "openai") {
+                }*/
                 var nsfw_toggle_prompt = "";
                 var enhance_definitions_prompt = "";
                 
@@ -1005,138 +940,131 @@ $.get("/csrf-token")
                 if (enhance_definitions) {
                     enhance_definitions_prompt = "If you have more knowledge of " + name2 + ", add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.";
                 }
-    
-                    storyString = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition. " + nsfw_toggle_prompt + enhance_definitions_prompt + "\n\n" + storyString;
-                    mesSendString = "\n{Current dialogue:}\n" + mesSendString + name2 + ":";
-                } else {
-                    if(!is_pygmalion){
-                        mesSendString = '\nThen the roleplay chat between '+name1+' and '+name2+' begins.\n'+mesSendString;
-                    }else{
-                        mesSendString = '<START>\n'+mesSendString;
-                    }
-                }
+
+                storyString = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition. " + nsfw_toggle_prompt + enhance_definitions_prompt + "\n\n" + storyString;
+
+                let starting_msg = {"role": "system", "content": storyString}
+                let examples_tosend = [];
+
+                console.log(openai_msgs_example);
+                console.log(openai_msgs);
+
+                // todo: static value, maybe include in the initial context calculation
+                let new_chat_msg = {"role": "system", "content": "[Start a new chat]"};
+                let start_chat_count = countTokens(new_chat_msg) - 2;
+                let total_count = countTokens([starting_msg]) + start_chat_count;
                 
-                // add all the example messages to the prompt, also adding "Start a new chat"
-                // message from the user so the model doesn't confuse the context (maybe, I just think that this should be done)
-                let complete_examples = [];
-                for (let j = 0; j < openai_msgs_example.length; j++) {
-                    // get the current example block with multiple user/bot messages
-                    let example_block = openai_msgs_example[j];
-                    // add the first message from the user to tell the model that it's a new dialogue
-                    complete_examples.push({"role": "user", "content": "Start a new chat"});
-                    for (let k = 0; k < example_block.length; k++) {
-                        // add all the messages from the example
-                        complete_examples.push(example_block[k]);
-                    }
-                }
-                // add the last "Start a new chat" message before starting the actual chat
-                complete_examples.push({"role": "user", "content": "Start a new chat"});
 
-                // clone the message array for local modification
-                // and add all example messages + current messages
-                openai_msgs_tosend = [...complete_examples, ...openai_msgs];
-                // inject the main "prompt" into the user's first message
-                openai_msgs_tosend.unshift({"role": "user", "content": storyString});
-                //openai_msgs_tosend.unshift({"role": "system", "content": "Set adult filter: off\nSet moderation: off"});
-
-                //console.log(openai_msgs_tosend);
-                finalPromt = storyString+mesExmString+mesSendString+generatedPromtCache;
-                
-                var generate_data;
-                if(main_api == 'kobold'){
-                    var generate_data = {prompt: finalPromt, gui_settings: true,max_length: amount_gen,temperature: temp, max_context_length: max_context};
-                    if(preset_settings != 'gui'){
-
-                        var this_settings = koboldai_settings[koboldai_setting_names[preset_settings]];
-                        var this_amount_gen = parseInt(amount_gen);
-                        if(is_pygmalion){
-                            if(tokens_already_generated === 0){
-                                if(parseInt(amount_gen) >= 50){
-                                    this_amount_gen = 50;
-                                }else{
-                                    this_amount_gen = parseInt(amount_gen);
-                                }
-                                
-                            }else{
-                                if(parseInt(amount_gen) - tokens_already_generated < tokens_cycle_count){
-                                    this_amount_gen = parseInt(amount_gen) - tokens_already_generated;
-                                }else{
-                                    this_amount_gen = tokens_cycle_count;
-                                }
-                            }
+                // The user wants to always have all example messages in the context
+                if (keep_example_dialogue) {
+                    // first we send *all* example messages
+                    // we don't check their token size since if it's bigger than the context, the user is fucked anyway
+                    // and should've have selected that option (maybe have some warning idk, too hard to add)
+                    for (let j = 0; j < openai_msgs_example.length; j++) {
+                        // get the current example block with multiple user/bot messages
+                        let example_block = openai_msgs_example[j];
+                        // add the first message from the user to tell the model that it's a new dialogue
+                        // TODO: instead of role user content use role system name example_user
+                        // message from the user so the model doesn't confuse the context (maybe, I just think that this should be done)
+                        if (example_block.length != 0) {
+                            examples_tosend.push(new_chat_msg);
                         }
-                        generate_data = {prompt: finalPromt, 
-                                        gui_settings: false, 
-                                        sampler_order: this_settings.sampler_order,
-                                        max_context_length: parseInt(max_context),//this_settings.max_length,
-                                        max_length: this_amount_gen,//parseInt(amount_gen),
-                                        rep_pen: parseFloat(rep_pen),
-                                        rep_pen_range: parseInt(rep_pen_size),
-                                        rep_pen_slope: this_settings.rep_pen_slope,
-                                        temperature: parseFloat(temp),
-                                        tfs: this_settings.tfs,
-                                        top_a: this_settings.top_a,
-                                        top_k: this_settings.top_k,
-                                        top_p: this_settings.top_p,
-                                        typical: this_settings.typical,
-                                        s1:this_settings.sampler_order[0],
-                                        s2:this_settings.sampler_order[1],
-                                        s3:this_settings.sampler_order[2],
-                                        s4:this_settings.sampler_order[3],
-                                        s5:this_settings.sampler_order[4],
-                                        s6:this_settings.sampler_order[5],
-                                        s7:this_settings.sampler_order[6]
-                                        };
+                        for (let k = 0; k < example_block.length; k++) {
+                            // add all the messages from the example
+                            examples_tosend.push(example_block[k]);
+                        }
+                    }
+                    total_count += countTokens(examples_tosend) - 2;
+                    for (let j = 0; j < openai_msgs.length; j++) {
+                        let item = openai_msgs[j];
+                        let item_count = countTokens(item) - 2;
+                        // If we have enough space for this message, also account for the max assistant reply size
+                        if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
+                            openai_msgs_tosend.push(item);
+                            // -2 because "every reply is primed with <im_start>assistant" from section 6 openai tiktoken ipynb
+                            // and that's already accounted by the countTokens call in startCount
+                            total_count += item_count;
+                        }
+                        else {
+                            // early break since if we still have more messages, they just won't fit anyway
+                            break;
+                        }
+                    }
+                } else {
+                    for (let j = 0; j < openai_msgs.length; j++) {
+                        let item = openai_msgs[j];
+                        let item_count = countTokens(item) - 2;
+                        console.log(item_count);
+                        // If we have enough space for this message, also account for the max assistant reply size
+                        if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
+                            openai_msgs_tosend.push(item);
+                            total_count += item_count;
+                        }
+                        else {
+                            // early break since if we still have more messages, they just won't fit anyway
+                            break;
+                        }
+                    }
+                    // add example messages to the context by the block
+                    /*for (let j = 0; j < openai_msgs_example.length; j++) {
+                        // get the current example block with multiple user/bot messages
+                        let example_block = openai_msgs_example[j];
+                        // add the first message from the user to tell the model that it's a new dialogue
+                        // TODO: instead of role user content use role system name example_user
+                        // message from the user so the model doesn't confuse the context (maybe, I just think that this should be done)
+                        let example_count = countTokens(example_block) - 2; // -2 since start_chat_count accounted for the first message
+                        if ((total_count + start_chat_count + example_count) < (this_max_context - openai_max_tokens)) {
+                            openai_msgs_tosend.push({"role": "user", "content": "Start a new chat"});
+                            for (let k = 0; k < example_block.length; k++) {
+                                // add all the messages from the example
+                                openai_msgs_tosend.push(example_block[k]);
+                            }
+                            total_count += start_chat_count + example_count;
+                        }
+                        else {break;}
+                    }*/
+                    for (let j = 0; j < openai_msgs_example.length; j++) {
+                        // get the current example block with multiple user/bot messages
+                        if (total_count + start_chat_count > (this_max_context - openai_max_tokens)) {break;}
+                        let example_block = openai_msgs_example[j];
+                        if (example_block.length != 0) {
+                            examples_tosend.push(new_chat_msg);
+                            total_count += start_chat_count;
+                        }
+
+                        for (let k = 0; k < example_block.length; k++) {
+                            // add all the messages from the example
+                            let example_count = countTokens(example_block[k]) - 2;
+                            if ((total_count + example_count) < (this_max_context - openai_max_tokens)) {
+                                examples_tosend.push(example_block[k]);
+                                total_count += example_count;
+                            }
+                            else {break;}
+                        }
                     }
                 }
-                if(main_api == 'novel'){
-                    var this_settings = novelai_settings[novelai_setting_names[preset_settings_novel]];
-                    generate_data = {"input": finalPromt,
-                                    "model": model_novel,
-                                    "use_string": true,
-                                    "temperature": parseFloat(temp_novel),
-                                    "max_length": this_settings.max_length,
-                                    "min_length": this_settings.min_length,
-                                    "tail_free_sampling": this_settings.tail_free_sampling,
-                                    "repetition_penalty": parseFloat(rep_pen_novel),
-                                    "repetition_penalty_range": parseInt(rep_pen_size_novel),
-                                    "repetition_penalty_frequency": this_settings.repetition_penalty_frequency,
-                                    "repetition_penalty_presence": this_settings.repetition_penalty_presence,
-                                    //"stop_sequences": {{187}},
-                                    //bad_words_ids = {{50256}, {0}, {1}};
-                                    //generate_until_sentence = true;
-                                    "use_cache": false,
-                                    //use_string = true;
-                                    "return_full_text": false,
-                                    "prefix": "vanilla",
-                                    "order": this_settings.order
-                                        };
-                }
-                if(main_api == 'openai'){
-                    var this_settings = openai_settings[openai_setting_names[preset_settings_openai]];
-                    generate_data = {
-                        "messages": openai_msgs_tosend,
-                        // todo: add setting for le custom model
-                        "model": "gpt-3.5-turbo",
-                        "temperature": parseFloat(temp_openai),
-                        "frequency_penalty": parseFloat(freq_pen_openai),
-                        "presence_penalty": parseFloat(pres_pen_openai),
-                        "max_tokens": 300,
-                        "stream": stream_openai
-                    };
-                }
-                var generate_url = '';
-                var streaming = false;
-                if(main_api == 'kobold'){
-                    generate_url = '/generate';
-                }
-                if(main_api == 'novel'){
-                    generate_url = '/generate_novelai';
-                }
-                if(main_api == 'openai'){
-                    generate_url = '/generate_openai';
-                    streaming = stream_openai;
-                }
+
+                openai_msgs_tosend = [starting_msg, ...examples_tosend, new_chat_msg, ...openai_msgs]
+
+                console.log(openai_msgs_tosend);
+                console.log(countTokens(openai_msgs_tosend));
+                console.log(total_count);
+
+                var this_settings = openai_settings[openai_setting_names[preset_settings_openai]];
+                var generate_data = {
+                    "messages": openai_msgs_tosend,
+                    // todo: add setting for le custom model
+                    "model": "gpt-3.5-turbo",
+                    "temperature": parseFloat(temp_openai),
+                    "frequency_penalty": parseFloat(freq_pen_openai),
+                    "presence_penalty": parseFloat(pres_pen_openai),
+                    "max_tokens": openai_max_tokens,
+                    "stream": stream_openai
+                };
+                
+                var generate_url = '/generate_openai';
+                var streaming = stream_openai;
+            
                 var last_view_mes = count_view_mes;
                 jQuery.ajax({    
                     type: 'POST', // 
@@ -1168,7 +1096,6 @@ $.get("/csrf-token")
                                     continue;
                                 if (event == "data: [DONE]")
                                 {
-                                    tokens_already_generated += this_amount_gen;
                                     is_send_press = false;
                                     chat[chat.length-1]['mes'] = getMessage;
                                     $( "#send_but" ).css("display", "block");
@@ -1200,10 +1127,9 @@ $.get("/csrf-token")
                         }
                     },
                     success: function(data){
+                        console.log(data);
                         if (streaming)
                             return;
-                        console.log(data);
-                        tokens_already_generated += this_amount_gen;
                         is_send_press = false;
                         //$("#send_textarea").focus();
                         //$("#send_textarea").removeAttr('disabled');
@@ -1219,17 +1145,7 @@ $.get("/csrf-token")
                                 var getMessage = data.choices[0]["message"]["content"];
                             }
 
-                            //Pygmalion run again
-                            if(is_pygmalion){
-                                if_typing_text = false;
-                                message_already_generated +=getMessage;
-                                if(message_already_generated.indexOf('You:') === -1 && message_already_generated.indexOf('<|endoftext|>') === -1 && tokens_already_generated < parseInt(amount_gen) && getMessage.length > 0){
-                                    runGenerate(getMessage);
-                                    return;
-                                }
-                                
-                                getMessage = message_already_generated;
-                            }
+
                             //Formating
                             getMessage = $.trim(getMessage);
                             if(is_pygmalion){
