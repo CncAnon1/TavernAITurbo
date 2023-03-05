@@ -10,25 +10,21 @@ p.customfont {
 }
 body {
     margin: 0;
-    background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0));
+    background: linear-gradient(rgba(19,21,44,0.75), rgba(19,21,44,0.75)), url(backgrounds/tavern.png);
     background-size: auto 100%;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    
+    backdrop-filter: blur(2px);
     scrollbar-width: thin;
     scrollbar-color: gray #191b31;
 
 }
 .mes_text i {
-    color: #999 !important;
-	
-	
-	
+    color: grey !important;
 }
 .mes_text em {
-    color: #999 !important;
-	font-style: normal;
+    color: grey !important;
 }
 .mes_text p {
     margin-top: 0px;
@@ -36,7 +32,7 @@ body {
 }
 .mes_text strong {
     font-weight: bold;
-    color: #999 !important;
+    color: grey !important;
 }
 .mes_text h2 {
     font-weight: bold;
@@ -55,23 +51,23 @@ code {
   word-wrap: break-word;
 }
 #bg1{
-    
+    background-image: linear-gradient(rgba(19,21,44,0.75), rgba(19,21,44,0.75)), url(backgrounds/tavern.png);
     background-size: auto 100%;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    
+    filter: blur(2px);
     position: absolute;
     width: 100%;
     height: 100%;
     z-index: -2;
 }
 #bg2{
-    
+    background: linear-gradient(rgba(19,21,44,0.75), rgba(19,21,44,0.75)), url(backgrounds/tavern.png);
     background-size: auto 100%;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    
+    filter: blur(2px);
     background-size: cover;
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
@@ -84,28 +80,26 @@ code {
 #sheld {
     display: grid;
     grid-template-rows: auto 145px;
-    background: black;
-    height: 90vh;
+    background: #191b3133;
+    height: 100vh;
     overflow: auto;
     overflow-x: hidden;
     overflow-y: hidden;
-    max-width:700px;
+    max-width:800px;
     margin-left: auto;
     margin-right: auto;
-	margin-top: 50px;
     /* border-right: 0.1px solid gray; */
     /* border-left: 0.1px solid gray; */
     /* box-shadow: 0 0 2px rgba(200,200,200,0.1); */
 }
 
 #chat {
-	
-    scrollbar-width: 3px;
-    /* width: 600px; */
+    scrollbar-width: thin;
+    /* width: 900px; */
     /* height: 80%; */
     overflow: hidden;
-    overflow-y: auto;
-    background: #0;
+    overflow-y: scroll;
+    background: #191b3100;
     /* white-space:nowrap; */
     /* margin-left: 30%; /* Отступ слева */ */
     /* width: 40%; /* Ширина слоя */ */
@@ -113,13 +107,12 @@ code {
 }
 
 ::-webkit-scrollbar {
-    width: 3px;
-	
-    background-color: #333; 
+    width: .60em;
+    /* background-color: blue; */
 }
 
 ::-webkit-scrollbar-track {
-    background-color: #333;
+    background-color: #191b31;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -130,9 +123,8 @@ code {
 #form_sheld {
     /* box-shadow: 0 0 2px rgba(200,200,200,0.5); */
     box-shadow: 0 0 2px rgba(200,200,200,0.1);
-	/*width: 600px;*/ 
     white-space:nowrap;
-    background: black;
+    background: #191b31A0;
     /* height: 10%; */
     /* margin-left: 30%; /* Отступ слева */ */
     /* width: 95%; /* Ширина слоя */ */
@@ -151,21 +143,18 @@ code {
 }
 #send_textarea{
     /* width:100%;  */
-	
-	
-    transition: color 300ms ease 0ms;
-    font-size: 16px; 
+    font-size: 11pt; 
     height: 89px;
     resize: none;
     display:inline-block;
-    background-color: black;
+    background-color: #13152c;
     outline: none !important;
     border:0px solid grey;
     box-shadow: 0 0 2px rgba(200,200,200,0.5);
     padding: 10px;
     color: #e6e6e6;
-    font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 18px;
     margin-left: 10px;
     margin-top: 10px;
 }
@@ -178,9 +167,7 @@ code {
 }
 #send_but{
     /* visibility: visible; */
-	text-align: center;
     width: 100%;
-	
     margin: 0 auto;
     margin-left: 4px;
     display: block;
@@ -267,9 +254,9 @@ code {
     display: grid;
     grid-template-columns: fit-content(60px) 60px auto;
     border-radius: 5px;
-    /*box-shadow: 0 0 2px rgba(200,200,200,0.1); */
+    box-shadow: 0 0 2px rgba(200,200,200,0.1);
     padding: 4px;
-    background: black; 
+    background: #191b31CC;
     /* box-shadow: 0 0 2px rgba(200,200,200,0.5); */
     
     
@@ -279,31 +266,28 @@ code {
     /* height:60px; */
     /* background: red; */
     /* font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif; */
-    font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     color: rgb(229, 224, 216);
-    font-size: 17px;
+    font-size: 18px;
     /* background: blue; */
     margin-bottom: 26px;
 }
 .avatar {
   /* box-shadow: 0 0 2px rgba(200,200,200,0.5); */
   /* background: #13152c; */
-  width: 65px;
-  height: 65px;
+  width: 67px;
+  height: 103px;
   border-style: none;
-  
   padding:6px;
-  
+  padding-bottom:20px;
 }
 
 .avatar img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
-  object-position: top center;
-  
-  
+  object-position: center center;
+  border-radius: 10px;
 }
 .mes_block{
     
@@ -317,14 +301,13 @@ code {
 .mes_text{
     /* background: olive; */
     
-    /*font-weight:lighter;*/
+    font-weight:lighter;
     padding-top: 3px;
     margin-bottom: 10px;
     padding-right: 40px;
     max-width: 720px;
     word-wrap: break-word;
     animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
-	
     
 }
 
@@ -350,7 +333,7 @@ br {
 
 textarea{
     width:100%; 
-    font-size: 16px; 
+    font-size: 11pt; 
     height: 400px;
     resize: none;
     display:block;
@@ -360,13 +343,13 @@ textarea{
     box-shadow: 0 0 2px rgba(200,200,200,0.5);
     padding: 10px;
     color: #cacaca;
-    font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    font-size: 16px;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 18px;
     margin-left: 10px;
     margin-top: 10px;
 }
 #rm_ch_create_block textarea {
-    font-size: 16px;
+    font-size: 11pt;
 }
 
 #description_textarea{
@@ -396,7 +379,7 @@ textarea{
 
     padding: 10px;
     color: #ffffffaa;
-    font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     font-size: 18px;
     size: 10;
     font-size: 11pt;
@@ -525,7 +508,7 @@ input[type=button] {
     width: 25px;
     height: 25px;
     display: none;
-    
+
 }
 #api_loading_openai{
     width: 25px;
@@ -545,8 +528,7 @@ input[type=button] {
     grid-template-columns: 67px auto;
 }
 .character_select .avatar{
-    height: 65px;
-	width: 65px;
+    height: 100px;
 }
 .character_select .ch_name{
     margin-left: 10px;
@@ -567,12 +549,10 @@ input[type=button] {
 #last_mes_div{
     display: none;
 }
-
 #rm_button_selected_ch{
     
 }
 #bg_menu{
-	visibility: hidden;
     margin-top: 5px;
     margin-left: 2px;
     cursor:pointer;
@@ -595,8 +575,6 @@ input[type=button] {
     margin-left: 1px;
 }
 #bg_menu_button{
-	
-	
     display: inline-block;
     opacity: 0.4;
      /* transition: 0.5s */
@@ -1061,7 +1039,6 @@ select {
 }
 #user_avatar_block{
     margin-left: 6px;
-	
     display: grid;
     grid-template-columns: auto auto auto;
 }
@@ -1072,8 +1049,8 @@ select {
     height: 126px;
 }
 #user_avatar_block .avatar img{
-    width: 65px;
-    height: 65px;
+    width: 90px;
+    height: 126px;
 }
 #temp{
     margin-left: 10px;
@@ -1651,15 +1628,12 @@ a {
 }
 
 
-input#api_key_openai {
-    width: calc(100% - 100px);
-}
 
 /* Right nav */
 
 .nav {
     width: 450px;
-    max-width: 450px;
+    min-width: 450px;
     height: 100%;
     position: fixed;
     top: 0;
