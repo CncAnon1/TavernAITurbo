@@ -127,7 +127,6 @@ var openai_max_tokens = 300;
 
 var openai_msgs = [];
 var openai_msgs_example = [];
-var openai_msgs_tosend = [];
 
 // extra tweaks
 var keep_example_dialogue = true;
@@ -908,6 +907,7 @@ async function Generate(type) {
 
             let prompt_msg = { "role": "system", "content": storyString }
             let examples_tosend = [];
+            let openai_msgs_tosend = [];
 
             console.log(openai_msgs_example);
             console.log(openai_msgs);
@@ -967,6 +967,7 @@ async function Generate(type) {
                         break;
                     }
                 }
+                console.log(total_count);
                 // add example messages to the context by the block
                 /*for (let j = 0; j < openai_msgs_example.length; j++) {
                     // get the current example block with multiple user/bot messages
@@ -990,9 +991,10 @@ async function Generate(type) {
                     let example_block = openai_msgs_example[j];
 
                     for (let k = 0; k < example_block.length; k++) {
-                        // add all the messages from the example
                         if (example_block.length == 0) { continue; }
                         let example_count = countTokens(example_block[k]);
+                        if (k == 0) example_count += start_chat_count;
+                        // add all the messages from the example
                         if ((total_count + example_count) < (this_max_context - openai_max_tokens)) {
                             if (k == 0) {
                                 examples_tosend.push(new_chat_msg);
@@ -1006,7 +1008,7 @@ async function Generate(type) {
                 }
             }
 
-            openai_msgs_tosend = [prompt_msg, ...examples_tosend, new_chat_msg, ...openai_msgs]
+            openai_msgs_tosend = [prompt_msg, ...examples_tosend, new_chat_msg, ...openai_msgs_tosend]
 
             console.log(openai_msgs_tosend);
             console.log(countTokens(openai_msgs_tosend, true));
