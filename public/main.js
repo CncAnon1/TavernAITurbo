@@ -169,6 +169,55 @@ function replacePlaceholders(text) {
         .replace(/<BOT>/gi, name2);
 }
 
+function parseExampleIntoIndividual(messageExampleString) {
+    let result = []; // array of msgs
+    let tmp = messageExampleString.split("\n");
+
+    var cur_msg_lines = [];
+    let in_user = false;
+    let in_bot = false;
+    // DRY my cock and balls
+    function add_msg(name, role) {
+        // join different newlines (we split them by \n and join by \n)
+        // remove char name
+        // strip to remove extra spaces
+        let parsed_msg = cur_msg_lines.join("\n").replace(name + ":", "").trim();
+        result.push({ "role": role, "content": parsed_msg });
+        cur_msg_lines = [];
+    }
+    // skip first line as it'll always be "This is how {bot name} should talk"
+    for (let i = 1; i < tmp.length; i++) {
+        let cur_str = tmp[i];
+        // if it's the user message, switch into user mode and out of bot mode
+        // yes, repeated code, but I don't care
+        if (cur_str.indexOf(name1 + ":") === 0) {
+            in_user = true;
+            // we were in the bot mode previously, add the message
+            if (in_bot) {
+                add_msg(name2, "assistant");
+            }
+            in_bot = false;
+        } else if (cur_str.indexOf(name2 + ":") === 0) {
+            in_bot = true;
+            // we were in the user mode previously, add the message
+            if (in_user) {
+                add_msg(name1, "user");
+            }
+            in_user = false;
+        }
+        // push the current line into the current message array only after checking for presence of user/bot
+        cur_msg_lines.push(cur_str);
+    }
+    // Special case for last message in a block because we don't have a new message to trigger the switch
+    if (in_user) {
+        add_msg(name1, "user");
+    } else if (in_bot) {
+        add_msg(name2, "assistant");
+    }
+    return result;
+}
+
+
 var token;
 $.ajaxPrefilter((options, originalOptions, xhr) => {
     xhr.setRequestHeader("X-CSRF-Token", token);
@@ -739,54 +788,6 @@ async function Generate(type) {
 
         var i = 0;
 
-        function parseExampleIntoIndividual(messageExampleString) {
-            let result = []; // array of msgs
-            let tmp = messageExampleString.split("\n");
-
-            var cur_msg_lines = [];
-            let in_user = false;
-            let in_bot = false;
-            // DRY my cock and balls
-            function add_msg(name, role) {
-                // join different newlines (we split them by \n and join by \n)
-                // remove char name
-                // strip to remove extra spaces
-                let parsed_msg = cur_msg_lines.join("\n").replace(name + ":", "").trim();
-                result.push({ "role": role, "content": parsed_msg });
-                cur_msg_lines = [];
-            }
-            // skip first line as it'll always be "This is how {bot name} should talk"
-            for (let i = 1; i < tmp.length; i++) {
-                let cur_str = tmp[i];
-                // if it's the user message, switch into user mode and out of bot mode
-                // yes, repeated code, but I don't care
-                if (cur_str.indexOf(name1 + ":") === 0) {
-                    in_user = true;
-                    // we were in the bot mode previously, add the message
-                    if (in_bot) {
-                        add_msg(name2, "assistant");
-                    }
-                    in_bot = false;
-                } else if (cur_str.indexOf(name2 + ":") === 0) {
-                    in_bot = true;
-                    // we were in the user mode previously, add the message
-                    if (in_user) {
-                        add_msg(name1, "user");
-                    }
-                    in_user = false;
-                }
-                // push the current line into the current message array only after checking for presence of user/bot
-                cur_msg_lines.push(cur_str);
-            }
-            // Special case for last message in a block because we don't have a new message to trigger the switch
-            if (in_user) {
-                add_msg(name1, "user");
-            } else if (in_bot) {
-                add_msg(name2, "assistant");
-            }
-            return result;
-        }
-
         // get a nice array of all blocks of all example messages = array of arrays (important!)
         openai_msgs_example = [];
         for (let k = 0; k < mesExamplesArray.length; k++) {
@@ -870,9 +871,6 @@ async function Generate(type) {
             let examples_tosend = [];
             let openai_msgs_tosend = [];
 
-            console.log(openai_msgs_example);
-            console.log(openai_msgs);
-
             // todo: static value, maybe include in the initial context calculation
             let new_chat_msg = { "role": "system", "content": "[Start a new chat]" };
             let start_chat_count = countTokens([new_chat_msg]);
@@ -916,7 +914,6 @@ async function Generate(type) {
             } else {
                 for (let j = openai_msgs.length - 1; j >= 0; j--) {
                     let item = openai_msgs[j];
-                    console.log(item);
                     let item_count = countTokens(item);
                     // If we have enough space for this message, also account for the max assistant reply size
                     if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
@@ -1806,11 +1803,31 @@ $("#form_create").submit(function (e) {
                 $("#add_avatar_button").replaceWith($("#add_avatar_button").val('').clone(true));
                 $('#create_button').attr('value', 'Save');
                 // TODO: COUNT TOKENS
-                var count_tokens = 111;
+                function getTokensForPart(text) {
+                    let msg = {"role": "system", content: text.replace("\r\n", "\n")};
+                    let result = countTokens(msg) - 4 - 2 - 1;
+                    return result;
+                }
+                // make count for description, personality, scenario, example messages
+                let desc_tokens = getTokensForPart(characters[this_chid].description);
+                let pers_tokens = getTokensForPart(characters[this_chid].personality);
+                let scen_tokens = getTokensForPart(characters[this_chid].scenario);
+                let exmp_tokens = getTokensForPart(characters[this_chid].mes_example);
+                let count_tokens = desc_tokens + pers_tokens + scen_tokens + exmp_tokens;
+
+                let example_blocks = parseExampleIntoIndividual(characters[this_chid].mes_example);
+                let message_text = `Found ${example_blocks.length} example blocks with ${example_blocks.flat().length} messages in total`;
+                console.log(message_text);
+
+                // make a message specifying individual parts of the prompt 
+                // like "description: 100 tokens, personality: 200 tokens, scenario: 300 tokens, example message: 400 tokens"
+                let res_str = `Total: ${count_tokens} tokens, D: ${desc_tokens}, P: ${pers_tokens}, S: ${scen_tokens}, M: ${exmp_tokens}`;
+
+                // 4 for each "message" + 7 for role: system with empty content
                 if (count_tokens < 1024) {
-                    $('#result_info').html(count_tokens + " Tokens");
+                    $('#result_info').html(res_str);
                 } else {
-                    $('#result_info').html("<font color=red>" + count_tokens + " Tokens(TOO MANY TOKENS)</font>");
+                    $('#result_info').html("<font color=red>" + res_str + " Tokens (Too many tokens, consider reducing character definition)</font>");
                 }
 
                 //$('#result_info').transition({ opacity: 0.0 ,delay: 500,duration: 1000,easing: 'in-out',complete: function() { 
