@@ -818,16 +818,17 @@ async function Generate(type) {
                         is_add_personality = true;
                         //chatString = chatString.substr(0,chatString.length-1);
                         //anchorAndPersonality = "[Genre: roleplay chat][Tone: very long messages with descriptions]";
-                        if ((anchorTop != "" || charPersonality != "") && !is_pygmalion) {
+                        if ((anchorTop != "" || charPersonality != "")) {
                             if (anchorTop != "") charPersonality += ' ';
-                            item += "[" + charPersonality + anchorTop + ']\n';
+                            // todo: change to something else?
+                            item = `[${name2} is ${charPersonality}${anchorTop}]\n${item}`;
                         }
                     }
                     if (i >= openai_msgs.length - 1 && count_view_mes > 8 && $.trim(item).substr(0, (name1 + ":").length) == name1 + ":") {//For add anchor in end
                         //not sure what these are for
                         //item = item.substr(0, item.length - 1);
                         //chatString+=postAnchor+"\n";//"[Writing style: very long messages]\n";
-                        item = item + anchorBottom + "\n";
+                        item = anchorBottom + "\n" + item;
                     }
                     msg["content"] = item;
                     openai_msgs[i] = msg;
@@ -979,7 +980,7 @@ async function Generate(type) {
             var generate_data = {
                 "messages": openai_msgs_tosend,
                 // todo: add setting for le custom model
-                "model": "gpt-3.5-turbo",
+                "model": "gpt-3.5-turbo-0301",
                 "temperature": parseFloat(temp_openai),
                 "frequency_penalty": parseFloat(freq_pen_openai),
                 "presence_penalty": parseFloat(pres_pen_openai),
