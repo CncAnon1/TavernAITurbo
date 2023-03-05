@@ -160,7 +160,14 @@ setInterval(function () {
             break
     }
 }, 500);
-/////////////
+
+// feels good replacing 5+ places with a single function
+function replacePlaceholders(text) {
+    return text.replace(/{{user}}/gi, name1)
+        .replace(/{{char}}/gi, name2)
+        .replace(/<USER>/gi, name1)
+        .replace(/<BOT>/gi, name2);
+}
 
 var token;
 $.ajaxPrefilter((options, originalOptions, xhr) => {
@@ -554,10 +561,7 @@ function addOneMessage(mes) {
     //}
     //console.log(messageText);
     if (count_view_mes == 0) {
-        messageText = messageText.replace(/{{user}}/gi, name1);
-        messageText = messageText.replace(/{{char}}/gi, name2);
-        messageText = messageText.replace(/<USER>/gi, name1);
-        messageText = messageText.replace(/<BOT>/gi, name2);
+        messageText = replacePlaceholders(messageText);
     }
     messageText = messageFormating(messageText, characterName);
 
@@ -685,10 +689,7 @@ async function Generate(type) {
         //***Base replace***
         if (mesExamples !== undefined) {
             if (mesExamples.length > 0) {
-                mesExamples = mesExamples.replace(/{{user}}/gi, name1);
-                mesExamples = mesExamples.replace(/{{char}}/gi, name2);
-                mesExamples = mesExamples.replace(/<USER>/gi, name1);
-                mesExamples = mesExamples.replace(/<BOT>/gi, name2);
+                mesExamples = replacePlaceholders(mesExamples);
                 //mesExamples = mesExamples.replaceAll('<START>', '[An example of how '+name2+' responds]');
                 let blocks = mesExamples.split(/<START>/gi);
                 mesExamplesArray = blocks.slice(1).map(block => `<START>\n${block.trim()}\n`);
@@ -696,30 +697,19 @@ async function Generate(type) {
         }
         if (charDescription !== undefined) {
             if (charDescription.length > 0) {
-                charDescription = charDescription.replace(/{{user}}/gi, name1);
-                charDescription = charDescription.replace(/{{char}}/gi, name2);
-                charDescription = charDescription.replace(/<USER>/gi, name1);
-                charDescription = charDescription.replace(/<BOT>/gi, name2);
+                charDescription = replacePlaceholders(charDescription);
             }
         }
         if (charPersonality !== undefined) {
             if (charPersonality.length > 0) {
-                charPersonality = charPersonality.replace(/{{user}}/gi, name1);
-                charPersonality = charPersonality.replace(/{{char}}/gi, name2);
-                charPersonality = charPersonality.replace(/<USER>/gi, name1);
-                charPersonality = charPersonality.replace(/<BOT>/gi, name2);
+                charPersonality = replacePlaceholders(charPersonality);
             }
         }
         if (Scenario !== undefined) {
             if (Scenario.length > 0) {
-                Scenario = Scenario.replace(/{{user}}/gi, name1);
-                Scenario = Scenario.replace(/{{char}}/gi, name2);
-                Scenario = Scenario.replace(/<USER>/gi, name1);
-                Scenario = Scenario.replace(/<BOT>/gi, name2);
+                Scenario = replacePlaceholders(Scenario);
             }
         }
-
-
 
         if (charDescription.length > 0) {
             storyString = '{Description:}\n' + charDescription.replace('\r\n', '\n') + '\n';
@@ -732,38 +722,20 @@ async function Generate(type) {
         }
 
 
-        var count_exm_add = 0;
-        var chat2 = [];
-        var chat2_openai = [];
         var j = 0;
         // clean openai msgs
         openai_msgs = [];
         for (var i = chat.length - 1; i >= 0; i--) {
+            // first greeting message
             if (j == 0) {
-                chat[j]['mes'] = chat[j]['mes'].replace(/{{user}}/gi, name1);
-                chat[j]['mes'] = chat[j]['mes'].replace(/{{char}}/gi, name2);
-                chat[j]['mes'] = chat[j]['mes'].replace(/<USER>/gi, name1);
-                chat[j]['mes'] = chat[j]['mes'].replace(/<BOT>/gi, name2);
+                chat[j]['mes'] = replacePlaceholders(chat[j]['mes']);
             }
-            let this_mes_ch_name = '';
-            if (chat[j]['is_user']) {
-                openai_msgs[i] = { "role": "user", "content": chat[j]['mes'] };
-                this_mes_ch_name = name1;
-            } else {
-                openai_msgs[i] = { "role": "assistant", "content": chat[j]['mes'] };
-                this_mes_ch_name = name2;
-            }
-            if (chat[j]['is_name']) {
-                chat2[i] = this_mes_ch_name + ': ' + chat[j]['mes'] + '\n';
-            } else {
-                chat2[i] = chat[j]['mes'] + '\n';
-            }
+            let role = chat[j]['is_user'] ? 'user' : 'assistant';
+            openai_msgs[i] = { "role": role, "content": chat[j]['mes'] };
             j++;
         }
-        //chat2 = chat2.reverse();
-        // actually 4096 but be on the safer side. but instead of making this lower we should make sure we count 100% of all tokens before sending.
-        var this_max_context = 4000;
-        if (main_api == 'openai') this_max_context = openai_max_context;
+
+        let this_max_context = openai_max_context;
 
         var i = 0;
 
@@ -826,25 +798,6 @@ async function Generate(type) {
             openai_msgs_example.push(parsed);
         }
 
-        /*
-        for (let k = 0; k < chat2_openai.length; k++) {
-            let item = chat2_openai[k];
-            let total_token_count = await countTokens(openai_msgs);
-            let item_token_count = await countTokens(item);
-            // If we have enough space for this message.
-            if (total_token_count + item_token_count < this_max_context) {
-                openai_msgs[openai_msgs.length] = item;
-            }
-            else {
-                // say that we're at the end of the chat
-                i = chat.length - 1;
-            }
-            if (i == chat.length - 1) {
-                // todo: add example messages that fit in the context *if* the example dialogue toggle is off
-                runGenerate();
-            }
-        }*/
-
         runGenerate();
 
         function runGenerate(cycleGenerationPromt = '') {
@@ -889,8 +842,8 @@ async function Generate(type) {
             }else{
                 setPromtString();
             }*/
-            var nsfw_toggle_prompt = "";
-            var enhance_definitions_prompt = "";
+            let nsfw_toggle_prompt = "";
+            let enhance_definitions_prompt = "";
 
             // Bad code :)
             if (nsfw_toggle) {
@@ -903,7 +856,13 @@ async function Generate(type) {
                 enhance_definitions_prompt = "If you have more knowledge of " + name2 + ", add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.";
             }
 
-            storyString = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition. " + nsfw_toggle_prompt + enhance_definitions_prompt + "\n\n" + storyString;
+            let system_prompt = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition.";
+
+            // anon forced me to put the nsfw toggle first
+            let whole_prompt = [nsfw_toggle_prompt, system_prompt, enhance_definitions_prompt, "\n\n", storyString]
+            storyString = whole_prompt.join(" ")
+
+            // join by newline
 
             let prompt_msg = { "role": "system", "content": storyString }
             let examples_tosend = [];
