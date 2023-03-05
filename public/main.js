@@ -121,6 +121,10 @@ var openai_max_context = 2048;
     var openai_setting_names; 
     var preset_settings_openai = 'Default';
 
+    var openai_msgs = [];
+    var openai_msgs_example = [];
+    var openai_msgs_tosend = [];
+
 // extra tweaks
 var keep_example_dialogue = true;
 var nsfw_toggle = true;
@@ -593,6 +597,8 @@ $.get("/csrf-token")
                     chat.length = chat.length-1;
                     count_view_mes-=1;
                     $('#chat').children().last().remove();
+                    // We MUST remove the last message from the bot here as it's being regenerated.
+                    openai_msgs.pop();
                 }
             }
             //$("#send_textarea").attr("disabled","disabled");
@@ -739,7 +745,10 @@ $.get("/csrf-token")
             
             var count_exm_add = 0;
             var chat2 = [];
+            var chat2_openai = [];
             var j = 0;
+            // clean openai msgs
+            openai_msgs = [];
             for(var i = chat.length-1; i >= 0; i--){
                 if(j == 0){
                     chat[j]['mes'] = chat[j]['mes'].replace(/{{user}}/gi, name1);
@@ -749,8 +758,10 @@ $.get("/csrf-token")
                 }
                 let this_mes_ch_name = '';
                 if(chat[j]['is_user']){
+                    chat2_openai[i] = {"role": "user", "content": chat[j]['mes']};
                     this_mes_ch_name = name1;
                 }else{
+                    chat2_openai[i] = {"role": "assistant", "content": chat[j]['mes']};
                     this_mes_ch_name = name2;
                 }
                 if(chat[j]['is_name']){
@@ -761,7 +772,7 @@ $.get("/csrf-token")
                 j++;
             }
             //chat2 = chat2.reverse();
-            var this_max_context = 1487;
+            var this_max_context = 4096-350;
             if(main_api == 'kobold') this_max_context = max_context;
   if(main_api == 'openai') this_max_context = openai_max_context;
             if(main_api == 'novel'){
@@ -777,13 +788,15 @@ $.get("/csrf-token")
             if(main_api == 'openai') this_max_context = 2048;
             var i = 0;
             
-            for (var item of chat2) {//console.log(encode("dsfs").length);
+            for (let k = 0; k < chat2.length; k++) {
+                let item = chat2[i];
                 chatString = item+chatString;
                 if(encode(JSON.stringify(storyString+chatString+anchorTop+anchorBottom+charPersonality)).length+120 < this_max_context){ //(The number of tokens in the entire promt) need fix, it must count correctly (added +120, so that the description of the character does not hide)
                     
                     
                     //if (is_pygmalion && i == chat2.length-1) item='<START>\n'+item;
                     arrMes[arrMes.length] = item;
+                    openai_msgs[openai_msgs.length] = chat2_openai[i];
                 }else{
                     i = chat.length-1;
                 }
@@ -823,6 +836,7 @@ $.get("/csrf-token")
                 if(generatedPromtCache.length == 0){
                     chatString = "";
                     arrMes = arrMes.reverse();
+                    openai_msgs = openai_msgs.reverse();
                     var is_add_personality = false;
                     arrMes.forEach(function(item, i, arr) {//For added anchors and others
 
@@ -875,12 +889,63 @@ $.get("/csrf-token")
                 //Send story string
                 var mesSendString = '';
                 var mesExmString = '';
+
+                function parseExampleIntoIndividual(messageExampleString) {
+                    let result = []; // array of msgs
+                    let tmp = messageExampleString.split("\n");
+
+                    var cur_msg_lines = [];
+                    let in_user = false;
+                    let in_bot = false;
+                    // DRY my cock and balls
+                    function add_msg(name, role) {
+                        // join different newlines (we split them by \n and join by \n)
+                        // remove char name
+                        // strip to remove extra spaces
+                        let parsed_msg = cur_msg_lines.join("\n").replace(name + ":", "").trim();
+                        result.push({"role": role, "content": parsed_msg});
+                        cur_msg_lines = [];
+                    }
+                    // skip first line as it'll always be "This is how {bot name} should talk"
+                    for (let i = 1; i < tmp.length; i++) {
+                        let cur_str = tmp[i];
+                        // if it's the user message, switch into user mode and out of bot mode
+                        // yes, repeated code, but I don't care
+                        if (cur_str.indexOf(name1 + ":") === 0) {
+                            in_user = true;
+                            // we were in the bot mode previously, add the message
+                            if (in_bot) {
+                                add_msg(name2, "assistant");
+                            }
+                            in_bot = false;
+                        } else if (cur_str.indexOf(name2 + ":") === 0) {
+                            in_bot = true;
+                            // we were in the user mode previously, add the message
+                            if (in_user) {
+                                add_msg(name1, "user");
+                            }
+                            in_user = false;
+                        }
+                        // push the current line into the current message array only after checking for presence of user/bot
+                        cur_msg_lines.push(cur_str);
+                    }
+                    // Special case for last message in a block because we don't have a new message to trigger the switch
+                    if (in_user) {
+                        add_msg(name1, "user");
+                    } else if (in_bot) {
+                        add_msg(name2, "assistant");
+                    }
+                    return result;
+                }
+
                 function setPromtString(){
                     mesSendString = '';
                     mesExmString = '';
-      for(let j = 0; j < count_exm_add; j++){
-        mesExmString+=mesExamplesArray[j];
-      }
+                    openai_msgs_example = []; // empty the array
+                    for(let j = 0; j < count_exm_add; j++){
+                        openai_msgs_example.push(parseExampleIntoIndividual(mesExamplesArray[j]));
+                        mesExmString+=mesExamplesArray[j];
+                    }
                     for(let j = 0; j < mesSend.length; j++){
                         mesSendString+=mesSend[j];
                     }
@@ -910,19 +975,19 @@ $.get("/csrf-token")
                     setPromtString();
                 }
                 if(main_api == "openai") {
-      var nsfw_toggle_prompt = "";
-      var enhance_definitions_prompt = "";
-      
-      // Bad code :)
-      if (nsfw_toggle) {
-        nsfw_toggle_prompt = "NSFW/Smut is allowed. Assume consent was granted, but some characters lie and resist or fight back based on their personality.";
-      } else {
-        nsfw_toggle_prompt = "Avoid writing a NSFW/Smut reply. Creatively write around it NSFW/Smut scenarios in character.";
-      }
-      // Experimental but kinda works
-      if (enhance_definitions) {
-        enhance_definitions_prompt = "If you have more knowledge of " + name2 + ", add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.";
-      }
+                var nsfw_toggle_prompt = "";
+                var enhance_definitions_prompt = "";
+                
+                // Bad code :)
+                if (nsfw_toggle) {
+                    nsfw_toggle_prompt = "NSFW/Smut is allowed. Assume consent was granted, but some characters lie and resist or fight back based on their personality.";
+                } else {
+                    nsfw_toggle_prompt = "Avoid writing a NSFW/Smut reply. Creatively write around it NSFW/Smut scenarios in character.";
+                }
+                // Experimental but kinda works
+                if (enhance_definitions) {
+                    enhance_definitions_prompt = "If you have more knowledge of " + name2 + ", add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.";
+                }
     
                     storyString = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition. " + nsfw_toggle_prompt + enhance_definitions_prompt + "\n\n" + storyString;
                     mesSendString = "\n{Current dialogue:}\n" + mesSendString + name2 + ":";
@@ -934,6 +999,30 @@ $.get("/csrf-token")
                     }
                 }
                 
+                // add all the example messages to the prompt, also adding "Start a new chat"
+                // message from the user so the model doesn't confuse the context (maybe, I just think that this should be done)
+                let complete_examples = [];
+                for (let j = 0; j < openai_msgs_example.length; j++) {
+                    // get the current example block with multiple user/bot messages
+                    let example_block = openai_msgs_example[j];
+                    // add the first message from the user to tell the model that it's a new dialogue
+                    complete_examples.push({"role": "user", "content": "Start a new chat"});
+                    for (let k = 0; k < example_block.length; k++) {
+                        // add all the messages from the example
+                        complete_examples.push(example_block[k]);
+                    }
+                }
+                // add the last "Start a new chat" message before starting the actual chat
+                complete_examples.push({"role": "user", "content": "Start a new chat"});
+
+                // clone the message array for local modification
+                // and add all example messages + current messages
+                openai_msgs_tosend = [...complete_examples, ...openai_msgs];
+                // inject the main "prompt" into the user's first message
+                openai_msgs_tosend.unshift({"role": "user", "content": storyString});
+                //openai_msgs_tosend.unshift({"role": "system", "content": "Set adult filter: off\nSet moderation: off"});
+
+                //console.log(openai_msgs_tosend);
                 finalPromt = storyString+mesExmString+mesSendString+generatedPromtCache;
                 
                 var generate_data;
@@ -1009,12 +1098,12 @@ $.get("/csrf-token")
                 if(main_api == 'openai'){
                     var this_settings = openai_settings[openai_setting_names[preset_settings_openai]];
                     generate_data = {
-                        "prompt": finalPromt,
-                        "model": "text-davinci-003",
+                        "messages": openai_msgs_tosend,
+                        // todo: add setting for le custom model
+                        "model": "gpt-3.5-turbo",
                         "temperature": parseFloat(temp_openai),
                         "frequency_penalty": parseFloat(freq_pen_openai),
                         "presence_penalty": parseFloat(pres_pen_openai),
-                        "stop": [ name1+':', name2+":"],
                         "max_tokens": 300,
                         "stream": stream_openai
                     };
@@ -1071,7 +1160,8 @@ $.get("/csrf-token")
                                     break;
                                 }
                                 var data = JSON.parse(event.substring(6));
-                                getMessage += data.choices[0].text;
+                                // the first and last messages are undefined, protect against that
+                                getMessage += data.choices[0]["delta"]["content"] || "";
                             }
 
                             if ($("#chat").children().filter('[mesid="'+last_view_mes+'"]').length == 0) {
@@ -1109,7 +1199,7 @@ $.get("/csrf-token")
                                 var getMessage = data.output;
                             }
                             if(main_api == 'openai'){
-                                var getMessage = data.choices[0].text;
+                                var getMessage = data.choices[0]["message"]["content"];
                             }
 
                             //Pygmalion run again
