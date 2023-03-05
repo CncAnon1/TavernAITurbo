@@ -5,7 +5,6 @@
     <script src="scripts/jquery.transit.min.js"></script>
     <script src="scripts/jquery-cookie-1.4.1.min.js"></script>
     <script src="scripts/showdown.min.js"></script>
-    <script src="main.js" type="module"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="css/bg_load.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -390,7 +389,7 @@
                 </div>
 				<div id="openai_max_context_block">
                     <h4>OpenAI Context Size</h4><h5 id="openai_max_context_counter">select</h5>
-                    <input type="range" id="openai_max_context" name="volume" min="512" max="4096" step="1">
+                    <input type="range" id="openai_max_context" name="volume" min="512" max="4095" step="1">
                 </div>
                 <h4>Anchors Order</h4><h5>Helps to increase the length of messages (<a href="/notes/9" target="_blank">?</a>)</h5>
                 <select id="anchor_order">
@@ -477,6 +476,6 @@
    
     
 
-    
+<script src="main.js" type="module"></script>
 </body>
 </html>
