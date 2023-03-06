@@ -13,8 +13,7 @@ const extract = require('png-chunks-extract');
 const encode = require('png-chunks-encode');
 const PNGtext = require('png-chunk-text');
 
-const sharp = require('sharp');
-sharp.cache(false);
+const jimp = require('jimp');
 const path = require('path');
 
 const cookieParser = require('cookie-parser');
@@ -495,14 +494,17 @@ app.post("/deletecharacter", urlencodedParser, function(request, response){
 
 async function charaWrite(img_url, data, target_img, response = undefined, mes = 'ok'){
     try {
-        // Load the image in any format
-        sharp.cache(false);
-        var image = await sharp(img_url).resize(400, 600).toFormat('png').toBuffer();// old 170 234
-        // Convert the image to PNG format
-        //const pngImage = image.toFormat('png');
-
-        // Resize the image to 100x100
-        //const resizedImage = pngImage.resize(100, 100);
+        // Read the image, resize, and save it as a PNG into the buffer
+        let image = null;
+        await jimp.read(img_url).then(img => {
+            return img
+                .resize(400, 600)
+                .getBufferAsync(jimp.MIME_PNG);
+        }).then(data => {
+            image = data;
+        }).catch(err => {
+            throw err;
+        });
 
         // Get the chunks
         var chunks = extract(image);
@@ -532,7 +534,6 @@ async function charaWrite(img_url, data, target_img, response = undefined, mes =
 
 
 function charaRead(img_url){
-    sharp.cache(false);
     const buffer = fs.readFileSync(img_url);
     const chunks = extract(buffer);
      
