@@ -15,7 +15,6 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    backdrop-filter: blur(2px);
     scrollbar-width: thin;
     scrollbar-color: gray #191b31;
 
@@ -69,8 +68,6 @@ code {
     background-attachment: fixed;
     filter: blur(2px);
     background-size: cover;
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
     opacity: 0.0;
     position: absolute;
     width: 100%;

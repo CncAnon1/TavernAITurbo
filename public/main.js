@@ -860,8 +860,7 @@ async function Generate(type) {
 
             let system_prompt = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition.";
 
-            // anon forced me to put the nsfw toggle first
-            let whole_prompt = [nsfw_toggle_prompt, system_prompt, enhance_definitions_prompt, "\n\n", storyString]
+            let whole_prompt = [system_prompt, nsfw_toggle_prompt, enhance_definitions_prompt, "\n\n", storyString]
             storyString = whole_prompt.join(" ")
 
             // join by newline
