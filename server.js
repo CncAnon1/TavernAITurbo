@@ -1315,7 +1315,7 @@ app.listen(server_port, function() {
         }
     }
     console.log('Launching...');
-    if(autorun) open('http:127.0.0.1:'+server_port);
+    if(autorun) open('http://127.0.0.1:'+server_port);
     console.log('TavernAI started: http://127.0.0.1:'+server_port);
     if (fs.existsSync('public/characters/update.txt') && !is_colab) {
         convertStage1();
