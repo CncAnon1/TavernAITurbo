@@ -98,9 +98,9 @@ code {
     overflow-y: scroll;
     background: #191b3100;
     /* white-space:nowrap; */
-    /* margin-left: 30%; /* Отступ слева */ */
-    /* width: 40%; /* Ширина слоя */ */
-    /* padding: 10px; /* Поля вокруг текста */ */
+    /* margin-left: 30%; /* Отступ слева */
+    /* width: 40%; /* Ширина слоя */
+    /* padding: 10px; /* Поля вокруг текста */
 }
 
 ::-webkit-scrollbar {
@@ -123,9 +123,9 @@ code {
     white-space:nowrap;
     background: #191b31A0;
     /* height: 10%; */
-    /* margin-left: 30%; /* Отступ слева */ */
-    /* width: 95%; /* Ширина слоя */ */
-    /* padding: 10px; /* Поля вокруг текста */ */
+    /* margin-left: 30%; /* Отступ слева */
+    /* width: 95%; /* Ширина слоя */
+    /* padding: 10px; /* Поля вокруг текста */
     /* background: red; */
     /* margin-left: auto; */
     /* margin-right: auto; */
@@ -749,15 +749,10 @@ input[type=button] {
     margin-right: 16px; 
     color: #ffffff68;
 }
-#export_character_div {
-    word-wrap: break-word; 
-    white-space: pre-line;
-}
 
 #result_info{
     margin-left: 10px;
     size: 10px;
-    width: 300px;
     color: #ffffff33;
 }
 
@@ -1481,7 +1476,13 @@ label.checkbox :checked + span:after {
     margin-left: 38px;
 }
 
-
+#export_character_div{
+    display: grid;
+    grid-template-columns: 340px auto;
+    /* for multiline token count info */
+    word-wrap: break-word; 
+    white-space: pre-line;
+}
 
 
 /* css/style.css */
@@ -1526,7 +1527,7 @@ article {
     margin: 0 1em;
     padding: 0 22px;
     -webkit-transition: -webkit-transform .3s;
-    -moz-transition: : -moz-transform .3s;
+    -moz-transition: -moz-transform .3s;
     transition: transform .3s;
 }
 
@@ -1627,13 +1628,15 @@ a {
     background-color: transparent;
 }
 
-
+input#api_key_openai {
+ width: calc(100% - 100px);
+}
 
 /* Right nav */
 
 .nav {
     width: 450px;
-    min-width: 450px;
+    max-width: 450px;
     height: 100%;
     position: fixed;
     top: 0;
