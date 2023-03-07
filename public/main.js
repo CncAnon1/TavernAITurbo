@@ -1524,7 +1524,7 @@ $(document).on('click', '.bg_example_cross', function () {
     callPopup('<h3>Delete the background?</h3>');
 
 });
-$("#advanced_div").click(function () {
+$("#advedit_btn").click(function () {
     if (!is_advanced_char_open) {
         is_advanced_char_open = true;
         $('#character_popup').css('display', 'grid');
@@ -1800,47 +1800,6 @@ $("#form_create").submit(function (e) {
 
                 $("#add_avatar_button").replaceWith($("#add_avatar_button").val('').clone(true));
                 $('#create_button').attr('value', 'Save');
-                function getTokensForPart(text) {
-                    let msg = {"role": "system", content: text.replace("\r\n", "\n")};
-                    let result = countTokens(msg) - 4 - 1;
-                    return result;
-                }
-                let desc_tokens = getTokensForPart(characters[this_chid].description);
-                let pers_tokens = getTokensForPart(characters[this_chid].personality);
-                let scen_tokens = getTokensForPart(characters[this_chid].scenario);
-                
-                // ugly but that's what we have, have to replicate the normal example message parsing code
-                let blocks = replacePlaceholders(characters[this_chid].mes_example).split(/<START>/gi);
-                let example_msgs_array = blocks.slice(1).map(block => `<START>\n${block.trim()}\n`);
-                let exmp_tokens = 0;
-                let block_count = 0;
-                let msg_count = 0;
-                for (var block of example_msgs_array) {
-                    block_count++;
-
-                    let example_blocks = parseExampleIntoIndividual(block);
-                
-                    for (var block of example_blocks) {
-                        exmp_tokens += countTokens(block);
-                        msg_count += example_blocks.length;
-                    }
-                }
-                let count_tokens = desc_tokens + pers_tokens + scen_tokens + exmp_tokens;
-
-                let message_text = `Found ${block_count} example message blocks with ${msg_count} messages in total (${exmp_tokens} tokens)`;
-                let res_str = `Total: ${count_tokens} tokens. \nDescription: ${desc_tokens}. Personality: ${pers_tokens}\nScenario: ${scen_tokens}\n${message_text}`;
-
-
-                if (count_tokens < 1024) {
-                    $('#result_info').html(res_str);
-                } else {
-                    $('#result_info').html("<font color=red>" + res_str + " Tokens (Too many tokens, consider reducing character definition)</font>");
-                }
-
-                //$('#result_info').transition({ opacity: 0.0 ,delay: 500,duration: 1000,easing: 'in-out',complete: function() { 
-                //$('#result_info').transition({ opacity: 1.0,duration: 0}); 
-                //$('#result_info').html('&nbsp;');
-                //}});
             },
             error: function (jqXHR, exception) {
                 $('#create_button').removeAttr("disabled");
@@ -1850,6 +1809,48 @@ $("#form_create").submit(function (e) {
     }
 
 });
+
+$("#tcount_btn").click(function() {
+    function getTokensForPart(text) {
+        let msg = {"role": "system", content: text.replace("\r\n", "\n")};
+        let result = countTokens(msg) - 4 - 1;
+        return result;
+    }
+    let desc_tokens = getTokensForPart(characters[this_chid].description);
+    let pers_tokens = getTokensForPart(characters[this_chid].personality);
+    let scen_tokens = getTokensForPart(characters[this_chid].scenario);
+    let first_msg_tokens = getTokensForPart(replacePlaceholders(characters[this_chid].first_mes));
+    
+    // ugly but that's what we have, have to replicate the normal example message parsing code
+    let blocks = replacePlaceholders(characters[this_chid].mes_example).split(/<START>/gi);
+    let example_msgs_array = blocks.slice(1).map(block => `<START>\n${block.trim()}\n`);
+    let exmp_tokens = 0;
+    let block_count = 0;
+    let msg_count = 0;
+    for (var block of example_msgs_array) {
+        block_count++;
+
+        let example_blocks = parseExampleIntoIndividual(block);
+    
+        for (var block of example_blocks) {
+            exmp_tokens += countTokens(block);
+            msg_count += example_blocks.length;
+        }
+    }
+    let count_tokens = desc_tokens + pers_tokens + scen_tokens + exmp_tokens;
+
+    let message_text = `Found ${block_count} example message blocks with ${msg_count} messages in total (${exmp_tokens} tokens)`;
+    let res_str = `Total: ${count_tokens} tokens. Description: ${desc_tokens}.\nPersonality: ${pers_tokens}. Scenario: ${scen_tokens}.\n${message_text}\nFirst message tokens (not included in the total): ${first_msg_tokens}`;
+
+
+    if (count_tokens < 1024) {
+        $('#result_info').html(res_str);
+    } else {
+        $('#result_info').html("<font color=red>" + res_str + " Tokens (Too many tokens, consider reducing character definition)</font>");
+    }
+
+});
+
 $("#delete_button").click(function () {
     popup_type = 'del_ch';
     callPopup('<h3>Delete the character?</h3>');

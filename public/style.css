@@ -689,10 +689,29 @@ input[type=button] {
 #first_message_div{
     margin-top: 20px;
 }
-#advanced_div{
+
+input.advanced_btn{
+    display: grid;
     margin-top: 20px;
     cursor: pointer;
+    font-size: 14px;
+    background-repeat: no-repeat;
+    background-size: 28px;
+    background-position: 92px 5px;
+    /* background-image: url('img/book5.png'); */
+    width: 92%;
+    height: 40px;
+    margin-left: 10px;
+    font-weight: bold;
+    color: #ffffffbb;
+    padding: 0.5em;
+    border: thin solid rgba(200,200,200,0.2);
+    border-radius: 3px;
+    background-color: #191b3133;
+    opacity: 1.0;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
+
 #create_button{
     opacity: 0.8;
     margin-left: 9px;
@@ -751,9 +770,11 @@ input[type=button] {
 }
 
 #result_info{
+    margin-top: 20px;
     margin-left: 10px;
     size: 10px;
-    color: #ffffff33;
+    font-size: bold;
+    color: #ffffff; /* really hard to see otherwise */
 }
 
 .input-file {
@@ -1445,24 +1466,6 @@ label.checkbox :checked + span:after {
 }
 .select_chat_block_mes{
     margin-right: 6px;
-}
-#advanced_div{
-    font-size: 14px;
-    background-repeat: no-repeat;
-    background-size: 28px;
-    background-position: 92px 5px;
-    /* background-image: url('img/book5.png'); */
-    width: 92%;
-    height: 40px;
-    margin-left: 10px;
-    font-weight: bold;
-    color: #ffffffbb;
-    padding: 0.5em;
-    border: thin solid rgba(200,200,200,0.2);
-    border-radius: 3px;
-    background-color: #191b3133;
-    opacity: 1.0;
-    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 #advanced_book_logo{
     width: 35px;
