@@ -15,6 +15,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
+    backdrop-filter: blur(2px);
     scrollbar-width: thin;
     scrollbar-color: gray #191b31;
 
@@ -68,6 +69,8 @@ code {
     background-attachment: fixed;
     filter: blur(2px);
     background-size: cover;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     opacity: 0.0;
     position: absolute;
     width: 100%;
@@ -98,9 +101,9 @@ code {
     overflow-y: scroll;
     background: #191b3100;
     /* white-space:nowrap; */
-    /* margin-left: 30%; /* Отступ слева */
-    /* width: 40%; /* Ширина слоя */
-    /* padding: 10px; /* Поля вокруг текста */
+    /* margin-left: 30%; /* Отступ слева */ */
+    /* width: 40%; /* Ширина слоя */ */
+    /* padding: 10px; /* Поля вокруг текста */ */
 }
 
 ::-webkit-scrollbar {
@@ -123,9 +126,9 @@ code {
     white-space:nowrap;
     background: #191b31A0;
     /* height: 10%; */
-    /* margin-left: 30%; /* Отступ слева */
-    /* width: 95%; /* Ширина слоя */
-    /* padding: 10px; /* Поля вокруг текста */
+    /* margin-left: 30%; /* Отступ слева */ */
+    /* width: 95%; /* Ширина слоя */ */
+    /* padding: 10px; /* Поля вокруг текста */ */
     /* background: red; */
     /* margin-left: auto; */
     /* margin-right: auto; */
@@ -277,14 +280,20 @@ code {
   border-style: none;
   padding:6px;
   padding-bottom:20px;
+    display: flex;
+    align-items: center;
+    padding-right: 1ex;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius
 }
 
 .avatar img {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  /*height: 100%;*/
   object-fit: cover;
   object-position: center center;
-  border-radius: 10px;
+  border-radius: 10%;
 }
 .mes_block{
     
@@ -491,10 +500,6 @@ input[type=button] {
     cursor: pointer;
     color:#ffffffaa;
 }
-#api_button_openai{
-    cursor: pointer;
-    color:#ffffffaa;
-}
 #api_loading{
     width: 25px;
     height: 25px;
@@ -502,12 +507,6 @@ input[type=button] {
     
 }
 #api_loading_novel{
-    width: 25px;
-    height: 25px;
-    display: none;
-
-}
-#api_loading_openai{
     width: 25px;
     height: 25px;
     display: none;
@@ -546,6 +545,7 @@ input[type=button] {
 #last_mes_div{
     display: none;
 }
+
 #rm_button_selected_ch{
     
 }
@@ -689,29 +689,10 @@ input[type=button] {
 #first_message_div{
     margin-top: 20px;
 }
-
-input.advanced_btn{
-    display: grid;
+#advanced_div{
     margin-top: 20px;
     cursor: pointer;
-    font-size: 14px;
-    background-repeat: no-repeat;
-    background-size: 28px;
-    background-position: 92px 5px;
-    /* background-image: url('img/book5.png'); */
-    width: 92%;
-    height: 40px;
-    margin-left: 10px;
-    font-weight: bold;
-    color: #ffffffbb;
-    padding: 0.5em;
-    border: thin solid rgba(200,200,200,0.2);
-    border-radius: 3px;
-    background-color: #191b3133;
-    opacity: 1.0;
-    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
-
 #create_button{
     opacity: 0.8;
     margin-left: 9px;
@@ -768,13 +749,10 @@ input.advanced_btn{
     margin-right: 16px; 
     color: #ffffff68;
 }
-
 #result_info{
-    margin-top: 20px;
     margin-left: 10px;
     size: 10px;
-    font-size: bold;
-    color: #ffffff; /* really hard to see otherwise */
+    color: #ffffff33;
 }
 
 .input-file {
@@ -981,23 +959,6 @@ input.advanced_btn{
     margin-left: 4px;
     display: inline-block;
 }
-#online_status4{
-    opacity: 0.5;
-    margin-top: 2px;
-    margin-left: 10px;
-    margin-bottom: 30px;
-}
-#online_status_indicator4{
-    border-radius: 7px;
-    width: 14px;
-    height: 14px;
-    background-color: red;
-    display: inline-block;
-}
-#online_status_text4{
-    margin-left: 4px;
-    display: inline-block;
-}
 .del_checkbox{
     display: none;
     opacity: 0.5;
@@ -1032,14 +993,6 @@ select {
     margin-left: 3px;
 }
 #settings_perset{
-    width:284px;
-    margin-left: 10px;
-    margin-bottom: 35px;
-    color: #ffffff9d;
-    box-shadow: 0 0 2px rgba(200,200,200,0.5);
-    background-color:#13152c;
-}
-#settings_perset_openai{
     width:284px;
     margin-left: 10px;
     margin-bottom: 35px;
@@ -1097,10 +1050,6 @@ select {
     margin-bottom: 20px;
 }
 #range_block_novel input{
-    margin-left: 10px;
-    margin-bottom: 20px;
-}
-#range_block_openai input{
     margin-left: 10px;
     margin-bottom: 20px;
 }
@@ -1249,6 +1198,7 @@ label.checkbox :checked + span:after {
   color: #99a1a7;
 
 }
+#multi_priority_select,
 #anchor_order{
     width:284px;
     margin-left: 10px;
@@ -1261,7 +1211,7 @@ label.checkbox :checked + span:after {
     margin-left: 10px;
     float: left;
     display: grid;
-    grid-template-rows: 30px auto;
+    grid-template-rows: 30px 30px auto;
     grid-template-columns: auto auto;
 }
 
@@ -1368,6 +1318,8 @@ label.checkbox :checked + span:after {
     text-align: center;
 }
 
+#shadow_kick_popup,
+#shadow_invite_popup,
 #shadow_select_chat_popup{
     display: none;
     opacity: 1.0;
@@ -1377,6 +1329,8 @@ label.checkbox :checked + span:after {
     z-index: 2059;
     background-color: #00000066;
 }
+#kick_popup,
+#invite_popup,
 #select_chat_popup{
     display: block;
     grid-template-rows: 50px 100px 100px auto 45px;
@@ -1396,9 +1350,19 @@ label.checkbox :checked + span:after {
     background: #191b31F0;
     border-radius: 5px;
 }
+#kick_popup,
+#invite_popup {
+    overflow-y: auto;
+}
+#kick_popup a,
+#invite_popup a,
 #select_chat_popup a{
     color: #936f4a;
 }
+#kick_popup a:hover {
+    color: #ff8e6b;
+}
+#invite_popup a:hover,
 #select_chat_popup a:hover{
     color: #998e6b;
 }
@@ -1441,6 +1405,8 @@ label.checkbox :checked + span:after {
     cursor:pointer;
 }
 
+.kick_block,
+.invite_block,
 .select_chat_block{
     border-radius: 5px;
     margin-right: 10px;
@@ -1449,15 +1415,18 @@ label.checkbox :checked + span:after {
     grid-template-columns: 60px auto;
     grid-template-rows: 26px auto;
 }
+.kick_block:hover,
+.invite_block:hover,
 .select_chat_block:hover {
     background-color: #ffffff07;
 }
+.kick_block[highlight],
+.invite_block[highlight],
 .select_chat_block[highlight]{
     background-color: #ffffff09;/* #c2b07a12; */
 }
 
 .select_chat_block .avatar{
-
     grid-row: span 2;
 }
 
@@ -1466,6 +1435,53 @@ label.checkbox :checked + span:after {
 }
 .select_chat_block_mes{
     margin-right: 6px;
+}
+
+#input_talkativeness {
+    margin: 0 2%;
+    width: 96%;
+}
+
+.kick_block,
+.invite_block {
+    display: inline-block !important;
+}
+.kick_block .avatar,
+.invite_block .avatar {
+    padding: 6px 0px;
+}
+.kick_block .avatar img,
+.invite_block .avatar img {
+    margin: auto;
+}
+.kick_block .kick_block_name
+.invite_block .invite_block_name {
+    text-align: center;
+}
+.kick_block.host,
+.kick_block.disabled,
+.invite_block.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+#advanced_div{
+    font-size: 14px;
+    background-repeat: no-repeat;
+    background-size: 28px;
+    background-position: 92px 5px;
+    /* background-image: url('img/book5.png'); */
+    width: 92%;
+    height: 40px;
+    margin-left: 10px;
+    font-weight: bold;
+    color: #ffffffbb;
+    padding: 0.5em;
+    border: thin solid rgba(200,200,200,0.2);
+    border-radius: 3px;
+    background-color: #191b3133;
+    opacity: 1.0;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 #advanced_book_logo{
     width: 35px;
@@ -1482,9 +1498,6 @@ label.checkbox :checked + span:after {
 #export_character_div{
     display: grid;
     grid-template-columns: 340px auto;
-    /* for multiline token count info */
-    word-wrap: break-word; 
-    white-space: pre-line;
 }
 
 
@@ -1530,7 +1543,7 @@ article {
     margin: 0 1em;
     padding: 0 22px;
     -webkit-transition: -webkit-transform .3s;
-    -moz-transition: -moz-transform .3s;
+    -moz-transition: : -moz-transform .3s;
     transition: transform .3s;
 }
 
@@ -1631,15 +1644,13 @@ a {
     background-color: transparent;
 }
 
-input#api_key_openai {
- width: calc(100% - 100px);
-}
+
 
 /* Right nav */
 
 .nav {
     width: 450px;
-    max-width: 450px;
+    min-width: 450px;
     height: 100%;
     position: fixed;
     top: 0;
@@ -1953,3 +1964,4 @@ body {
     -webkit-transition: width 0s ease;
     transition: width 0s ease;
 }
+
