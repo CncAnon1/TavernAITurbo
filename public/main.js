@@ -1834,7 +1834,7 @@ $("#tcount_btn").click(function() {
     
         for (var block of example_blocks) {
             exmp_tokens += countTokens(block);
-            msg_count += example_blocks.length;
+            msg_count++;
         }
     }
     let count_tokens = desc_tokens + pers_tokens + scen_tokens + exmp_tokens;
