@@ -133,6 +133,7 @@ var keep_example_dialogue = true;
 var nsfw_toggle = true;
 var keep_example_dialogue = false;
 var enhance_definitions = false;
+var wrap_in_quotes = false;
 
 //css
 var bg1_toggle = true;
@@ -760,13 +761,13 @@ async function Generate(type) {
         }
 
         if (charDescription.length > 0) {
-            storyString = '{Description:}\n' + charDescription.replace('\r\n', '\n') + '\n';
+            storyString = 'Description:\n' + charDescription.replace('\r\n', '\n') + '\n';
         }
         if (charPersonality.length > 0) {
-            storyString += '{Personality:}\n' + charPersonality.replace('\r\n', '\n') + '\n';
+            storyString += 'Personality:\n' + charPersonality.replace('\r\n', '\n') + '\n';
         }
         if (Scenario.length > 0) {
-            storyString += '{Scenario:}\n' + Scenario.replace('\r\n', '\n') + '\n';
+            storyString += 'Scenario:\n' + Scenario.replace('\r\n', '\n') + '\n';
         }
 
 
@@ -779,7 +780,10 @@ async function Generate(type) {
                 chat[j]['mes'] = replacePlaceholders(chat[j]['mes']);
             }
             let role = chat[j]['is_user'] ? 'user' : 'assistant';
-            openai_msgs[i] = { "role": role, "content": chat[j]['mes'] };
+            let content = chat[j]['mes'];
+            // Apply the "wrap in quotes" option
+            if (role == 'user' && wrap_in_quotes) content = `"${content}"`;
+            openai_msgs[i] = { "role": role, "content": content };
             j++;
         }
 
@@ -2296,6 +2300,10 @@ $('#enhance_definitions').change(function () {
     enhance_definitions = !!$('#enhance_definitions').prop('checked');
     saveSettings();
 });
+$('#wrap_in_quotes').change(function () {
+    wrap_in_quotes = !!$('#wrap_in_quotes').prop('checked');
+    saveSettings();
+});
 
 //***************SETTINGS****************//
 ///////////////////////////////////////////
@@ -2457,6 +2465,7 @@ async function getSettings(type) {//timer
                 if (settings.nsfw_toggle !== undefined) nsfw_toggle = !!settings.nsfw_toggle;
                 if (settings.keep_example_dialogue !== undefined) keep_example_dialogue = !!settings.keep_example_dialogue;
                 if (settings.enhance_definitions !== undefined) enhance_definitions = !!settings.enhance_definitions;
+                if (settings.wrap_in_quotes !== undefined) wrap_in_quotes = !!settings.wrap_in_quotes;
 
                 $('#stream_toggle').prop('checked', stream_openai);
 
@@ -2466,6 +2475,7 @@ async function getSettings(type) {//timer
                 $('#nsfw_toggle').prop('checked', nsfw_toggle);
                 $('#keep_example_dialogue').prop('checked', keep_example_dialogue);
                 $('#enhance_definitions').prop('checked', enhance_definitions);
+                $('#wrap_in_quotes').prop('checked', wrap_in_quotes);
 
                 addZeros = "";
                 if (isInt(temp_openai)) addZeros = ".00";
@@ -2563,7 +2573,8 @@ async function saveSettings(type) {
             openai_max_context: openai_max_context,
             nsfw_toggle: nsfw_toggle,
             keep_example_dialogue: keep_example_dialogue,
-            enhance_definitions: enhance_definitions
+            enhance_definitions: enhance_definitions,
+            wrap_in_quotes: wrap_in_quotes
         }),
         beforeSend: function () {
 
