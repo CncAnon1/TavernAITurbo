@@ -391,6 +391,8 @@
 				<div id="openai_max_context_block">
                     <h4>OpenAI Context Size</h4><h5 id="openai_max_context_counter">select</h5>
                     <input type="range" id="openai_max_context" name="volume" min="512" max="4095" step="1">
+                    <h4>OpenAI max response length (in tokens)</h4>
+                    <input type="number" id="openai_max_tokens" name="openai_max_tokens" class="text_pole" min="50" max="1000" width="50">
                 </div>
                 <h4>Anchors Order</h4><h5>Helps to increase the length of messages (<a href="/notes/9" target="_blank">?</a>)</h5>
                 <select id="anchor_order">
@@ -416,16 +418,26 @@
 						<input id="nsfw_toggle" type="checkbox" checked><span class="slider round"></span>
 					</label><h4 style="display: inline-block;">NSFW Toggle</h4>
                     <label class="checkbox">
+                        <input id="nsfw_first" type="checkbox"/><span></span><h4 style="display: inline-block;">NSFW first</h4><h5>NSFW block goes first in the resulting prompt</h5>
+                    </label>
+                    <label class="checkbox">
                         <input id="keep_example_dialogue" type="checkbox"/><span></span><h4 style="display: inline-block;">Keep Example Dialogue</h4><h5>Keeps example dialogues from being removed</h5>
                     </label>
                     <label class="checkbox">
                         <input id="enhance_definitions" type="checkbox"/><span></span><h4 style="display: inline-block;">Enhance Definitions</h4><h5>Blends definitions with model's knowledge</h5>
                     </label>
                     <label class="checkbox">
-                        <input id="wrap_in_quotes" type="checkbox"/><span></span><h4 style="display: inline-block;">Wrap in Quotes</h4><h5>Always wraps user's messages in quotes before sending them.</h5>
+                        <input id="wrap_in_quotes" type="checkbox"/><span></span><h4 style="display: inline-block;">Wrap in Quotes</h4><h5>Wrap user messages in quotes before sending</h5>
                     </label>
                 </div>
 			</div>
+            <hr id = "tweak_hr">
+            <h4>Main prompt</h4><h5>The main prompt used to set the model behavior</h5>
+            <textarea id="main_prompt_textarea" class="custom_textarea" name="main_prompt" placeholder=""></textarea>
+            <h4>NSFW prompt</h4><h5>Prompt that is used when the NSFW toggle is on</h5>
+            <textarea id="nsfw_prompt_textarea" class="custom_textarea" name="nsfw_prompt" placeholder=""></textarea>
+            <input id="save_prompts" class="advanced_btn" type="button" value="Save prompt settings">            
+            </div>
         </div>
         <div id="rm_charater_import" class="right_menu" style="display: none;">
             <form id="form_import"  action="javascript:void(null);" method="post" enctype="multipart/form-data">

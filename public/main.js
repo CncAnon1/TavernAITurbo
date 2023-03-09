@@ -1,7 +1,3 @@
-// todo after fixing most stuff:
-// format this script with vscode
-// remove document ready function wrapper and just move the script to the bottom of index.html so it still waits for DOM
-
 const VERSION = '1.2.8';
 var converter = new showdown.Converter();
 var bg_menu_toggle = false;
@@ -134,6 +130,10 @@ var nsfw_toggle = true;
 var keep_example_dialogue = false;
 var enhance_definitions = false;
 var wrap_in_quotes = false;
+var nsfw_first = false;
+
+var main_prompt = "Write {{char}}'s next reply in a fictional chat between {{char}} and {{user}}. Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition.";
+var nsfw_prompt = "NSFW/Smut is allowed. Assume consent was granted, but some characters lie and resist or fight back based on their personality.";
 
 //css
 var bg1_toggle = true;
@@ -842,18 +842,12 @@ async function Generate(type) {
             if (type == 'force_name2') {
                 finalPromt += name2 + ':';
             }
-            /*
-            if(generatedPromtCache.length > 0){
-                checkPromtSize();
-            }else{
-                setPromtString();
-            }*/
+
             let nsfw_toggle_prompt = "";
             let enhance_definitions_prompt = "";
 
-            // Bad code :)
             if (nsfw_toggle) {
-                nsfw_toggle_prompt = "NSFW/Smut is allowed. Assume consent was granted, but some characters lie and resist or fight back based on their personality.";
+                nsfw_toggle_prompt = nsfw_prompt;
             } else {
                 nsfw_toggle_prompt = "Avoid writing a NSFW/Smut reply. Creatively write around it NSFW/Smut scenarios in character.";
             }
@@ -862,9 +856,14 @@ async function Generate(type) {
                 enhance_definitions_prompt = "If you have more knowledge of " + name2 + ", add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.";
             }
 
-            let system_prompt = "Write " + name2 + "'s next reply in a fictional chat between " + name2 + " and " + name1 + ". Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition.";
-
-            let whole_prompt = [system_prompt, nsfw_toggle_prompt, enhance_definitions_prompt, "\n\n", storyString]
+            let whole_prompt = [];
+            // If it's toggled, NSFW prompt goes first.
+            if (nsfw_first) {
+                whole_prompt = [nsfw_toggle_prompt, main_prompt, enhance_definitions_prompt, "\n\n", storyString]
+            }
+            else {
+                whole_prompt = [main_prompt, nsfw_toggle_prompt, enhance_definitions_prompt, "\n\n", storyString]
+            }
             
             // Join by a space
             storyString = whole_prompt.join(" ")
@@ -2027,6 +2026,28 @@ $("#dialogue_del_mes_ok").click(function () {
 
 });
 
+
+var no_placeholders_warning = false;
+$("#save_prompts").click(function () {
+    // Apparently is_send_press is used when the user is waiting for generation to complete.
+    if (is_send_press) return;
+
+    let new_main_prompt = $('#main_prompt_textarea').val();
+    let new_nsfw_prompt = $('#nsfw_prompt_textarea').val();
+
+    // Warn the user once if they don't have the {{char}} and {{user}} placeholders in the prompt.
+    if (!(new_main_prompt.includes("{{char}}") && new_main_prompt.includes("{{user}}"))) {
+        if (!no_placeholders_warning) {
+            no_placeholders_warning = true;
+            alert("Make sure you have the {{char}} and {{user}} placeholders in your main prompt. If you don't want to include them, simply ignore this warning, it won't appear again.");
+            return;
+        }
+    }
+    main_prompt = new_main_prompt;
+    nsfw_prompt = new_nsfw_prompt;
+    saveSettings();
+});
+
 $("#settings_perset").change(function () {
 
     if ($('#settings_perset').find(":selected").val() != 'gui') {
@@ -2284,6 +2305,10 @@ $(document).on('input', '#openai_max_context', function () {
     $('#openai_max_context_counter').html($(this).val() + ' Tokens');
     var max_contextTimer = setTimeout(saveSettings, 500);
 });
+$(document).on('input', '#openai_max_tokens', function () {
+    openai_max_tokens = parseInt($(this).val());
+    var max_tokensTimer = setTimeout(saveSettings, 500);
+});
 $('#stream_toggle').change(function () {
     stream_openai = !!$('#stream_toggle').prop('checked');
     saveSettings();
@@ -2302,6 +2327,10 @@ $('#enhance_definitions').change(function () {
 });
 $('#wrap_in_quotes').change(function () {
     wrap_in_quotes = !!$('#wrap_in_quotes').prop('checked');
+    saveSettings();
+});
+$('#nsfw_first').change(function () {
+    nsfw_first = !!$('#nsfw_first').prop('checked');
     saveSettings();
 });
 
@@ -2462,20 +2491,30 @@ async function getSettings(type) {//timer
                 pres_pen_openai = settings.pres_pen_openai ?? 0.7;
                 stream_openai = settings.stream_openai ?? true;
                 openai_max_context = settings.openai_max_context ?? 4095;
+                openai_max_tokens = settings.openai_max_tokens ?? 300;
                 if (settings.nsfw_toggle !== undefined) nsfw_toggle = !!settings.nsfw_toggle;
                 if (settings.keep_example_dialogue !== undefined) keep_example_dialogue = !!settings.keep_example_dialogue;
                 if (settings.enhance_definitions !== undefined) enhance_definitions = !!settings.enhance_definitions;
                 if (settings.wrap_in_quotes !== undefined) wrap_in_quotes = !!settings.wrap_in_quotes;
+                if (settings.nsfw_first !== undefined) nsfw_first = !!settings.nsfw_first;
 
                 $('#stream_toggle').prop('checked', stream_openai);
 
                 $('#openai_max_context').val(openai_max_context);
                 $('#openai_max_context_counter').html(openai_max_context + ' Tokens');
 
+                $('#openai_max_tokens').val(openai_max_tokens);
+
                 $('#nsfw_toggle').prop('checked', nsfw_toggle);
                 $('#keep_example_dialogue').prop('checked', keep_example_dialogue);
                 $('#enhance_definitions').prop('checked', enhance_definitions);
                 $('#wrap_in_quotes').prop('checked', wrap_in_quotes);
+                $('#nsfw_first').prop('checked', nsfw_first);
+
+                if (settings.main_prompt !== undefined) main_prompt = settings.main_prompt;
+                if (settings.nsfw_prompt !== undefined) nsfw_prompt = settings.nsfw_prompt;
+                $('#main_prompt_textarea').val(main_prompt);
+                $('#nsfw_prompt_textarea').val(nsfw_prompt);
 
                 addZeros = "";
                 if (isInt(temp_openai)) addZeros = ".00";
@@ -2571,10 +2610,14 @@ async function saveSettings(type) {
             pres_pen_openai: pres_pen_openai,
             stream_openai: stream_openai,
             openai_max_context: openai_max_context,
+            openai_max_tokens: openai_max_tokens,
             nsfw_toggle: nsfw_toggle,
             keep_example_dialogue: keep_example_dialogue,
             enhance_definitions: enhance_definitions,
-            wrap_in_quotes: wrap_in_quotes
+            wrap_in_quotes: wrap_in_quotes,
+            nsfw_first: nsfw_first,
+            main_prompt: main_prompt,
+            nsfw_prompt: nsfw_prompt
         }),
         beforeSend: function () {
 

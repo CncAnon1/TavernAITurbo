@@ -298,7 +298,7 @@ code {
 .mes_text{
     /* background: olive; */
     
-    font-weight:lighter;
+    /*font-weight:lighter;*/
     padding-top: 3px;
     margin-bottom: 10px;
     padding-right: 40px;
@@ -1952,4 +1952,10 @@ body {
     background: transparent;
     -webkit-transition: width 0s ease;
     transition: width 0s ease;
+}
+
+.custom_textarea{
+    width: 92%;
+    height: 200px;
+    margin-bottom: 20px;
 }
