@@ -865,8 +865,8 @@ async function Generate(type) {
                 whole_prompt = [main_prompt, nsfw_toggle_prompt, enhance_definitions_prompt, "\n\n", storyString]
             }
             
-            // Join by a space
-            storyString = whole_prompt.join(" ")
+            // Join by a space and replace placeholders with real user/char names
+            storyString = replacePlaceholders(whole_prompt.join(" "))
 
             let prompt_msg = { "role": "system", "content": storyString }
             let examples_tosend = [];
