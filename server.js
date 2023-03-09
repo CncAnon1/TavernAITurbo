@@ -1025,7 +1025,8 @@ app.post("/generate_openai", jsonParser, function(request, response_generate_ope
             "stream": request.body.stream,
             "presence_penalty": request.body.presence_penalty,
             "frequency_penalty": request.body.frequency_penalty,
-            "stop": request.body.stop
+            "stop": request.body.stop,
+            "logit_bias": request.body.logit_bias
         }
     };
 
