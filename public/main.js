@@ -421,7 +421,19 @@ async function getCharacters() {
 
             //console.log(characters[i]);
         }
-        characters.sort((a, b) => a.create_date - b.create_date);
+        characters.sort(function (a, b) {
+            // a fix for https://zoltanai.github.io/character-editor/ saving creation date in a different fucking field
+            // amazing coding bro, can't even make a proper exporter for tavern
+            // thanks for corrupting a lot of anons' characters
+            // if a or b have metadata, use the created field from them
+            if (a.metadata && a.metadata.created) {
+                a.create_date = a.metadata.created;
+            }
+            if (b.metadata && b.metadata.created) {
+                b.create_date = b.metadata.created;
+            } 
+            return a.create_date - b.create_date;
+        });
         //characters.reverse();
         if (this_chid != undefined) $("#avatar_url_pole").val(characters[this_chid].avatar);
         printCharaters();
