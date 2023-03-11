@@ -135,6 +135,29 @@ var nsfw_first = false;
 var main_prompt = "Write {{char}}'s next reply in a fictional chat between {{char}} and {{user}}. Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition.";
 var nsfw_prompt = "NSFW/Smut is allowed. Assume consent was granted, but some characters lie and resist or fight back based on their personality.";
 
+// Array of all messages that the user can swipe between
+var swipes = [];
+// Currently chosen swipe
+var current_swipe = 0;
+
+function swipeSetArrowVisibility() {
+    console.log("changing visibility");
+    console.log(current_swipe);
+    // First, hide all arrows
+    $(".right_arrow").css("visibility", "hidden");
+    $(".left_arrow").css("visibility", "hidden");
+    // Then enable arrows for the last message if it comes from the bot
+    if (chat.length > 0) {
+        let last_mes = chat[chat.length - 1];
+        if (!last_mes["is_user"]) {
+            $('.right_arrow:last').css('visibility', 'visible');
+            // If it's not the first swipe, also show the left arrow
+            $('.left_arrow:last').css('visibility', current_swipe > 0 ? "visible" : "hidden")
+        }
+    }
+}
+
+
 //css
 var bg1_toggle = true;
 var css_mes_bg = $('<div class="mes"></div>').css('background');
@@ -614,7 +637,35 @@ function addOneMessage(mes) {
     }
     messageText = messageFormating(messageText, characterName);
 
-    $("#chat").append("<div class='mes' mesid=" + count_view_mes + " ch_name=" + characterName + "><div class='for_checkbox'></div><input type='checkbox' class='del_checkbox'><div class=avatar><img src='" + avatarImg + "'></div><div class=mes_block><div class=ch_name>" + characterName + "<div title=Edit class=mes_edit><img src=img/scroll.png style='width:20px;height:20px;'></div><div class=mes_edit_cancel><img src=img/cancel.png></div><div class=mes_edit_done><img src=img/done.png></div></div><div class=mes_text>" + "</div></div></div>");
+    // Only show the swipe arrows for the last message if it comes from the bot and it's not the greeting
+    let is_last_msg = chat.length > 1 && (count_view_mes == chat.length - 1) && !mes['is_user'];
+    // Make a new swipes array with the current message being the first swipe
+    if (is_last_msg) {
+        swipes = [messageText];
+    }
+    // Only show left arrow if this swipe is not the first one
+    let left_display = (is_last_msg && current_swipe > 0) ? "visible" : "hidden";
+    
+    let right_display = is_last_msg ? "visible" : "hidden";
+
+    $("#chat").append(`
+<div class="mes" mesid="${count_view_mes}" ch_name="${characterName}">
+    <div class="for_checkbox"></div>
+    <input type="checkbox" class="del_checkbox">
+    <div class="avatar"><img src="${avatarImg}"></div>
+    <div class="mes_block">
+        <div class="arrow left_arrow" style="visibility: ${left_display};"></div>
+        <div class="ch_name">${characterName}
+            <div title="Edit" class="mes_edit">
+                <img src="img/scroll.png" style="width:20px;height:20px;">
+            </div>
+            <div class="mes_edit_cancel"><img src="img/cancel.png"></div>
+            <div class="mes_edit_done"><img src="img/done.png"></div>
+        </div>
+        <div class="mes_text"></div>
+        <div class="arrow right_arrow" style="visibility: ${right_display};"></div>
+    </div>
+</div>`);
 
     if (!if_typing_text) {
         //console.log(messageText);
@@ -661,11 +712,13 @@ async function Generate(type) {
     tokens_already_generated = 0;
     message_already_generated = name2 + ': ';
     if (online_status != 'no_connection' && this_chid != undefined) {
-        if (type != 'regenerate') {
-            var textareaText = $("#send_textarea").val();
-            $("#send_textarea").val('');
-
-        } else {
+        let is_swipe = false;
+        if (type == "swipe") {
+            // remove the latest message from the chat itself, not from HTML
+            chat.length = chat.length - 1;
+            is_swipe = true;
+        }
+        else if (type == "regenerate") {
             var textareaText = "";
             if (chat[chat.length - 1]['is_user']) {//If last message from You
 
@@ -676,6 +729,10 @@ async function Generate(type) {
                 // We MUST remove the last message from the bot here as it's being regenerated.
                 openai_msgs.pop();
             }
+        }
+        else {
+            var textareaText = $("#send_textarea").val();
+            $("#send_textarea").val('');
         }
         //$("#send_textarea").attr("disabled","disabled");
 
@@ -715,8 +772,7 @@ async function Generate(type) {
         //*********************************
         //PRE FORMATING STRING
         //*********************************
-        if (textareaText != "") {
-
+        if (textareaText && textareaText != "") {
             chat[chat.length] = {};
             chat[chat.length - 1]['name'] = name1;
             chat[chat.length - 1]['is_user'] = true;
@@ -1092,14 +1148,23 @@ async function Generate(type) {
                         if (type === 'force_name2') this_mes_is_name = true;
                         //getMessage = getMessage.replace(/^\s+/g, '');
                         if (getMessage.length > 0) {
+                            getMessage = $.trim(getMessage);
                             chat[chat.length] = {};
                             chat[chat.length - 1]['name'] = name2;
                             chat[chat.length - 1]['is_user'] = false;
                             chat[chat.length - 1]['is_name'] = this_mes_is_name;
                             chat[chat.length - 1]['send_date'] = Date.now();
-                            getMessage = $.trim(getMessage);
                             chat[chat.length - 1]['mes'] = getMessage;
-                            addOneMessage(chat[chat.length - 1]);
+                            if (is_swipe) {
+                                console.log(getMessage);
+                                $("#chat").children().filter('[mesid="' + (count_view_mes - 1) + '"]').children('.mes_block').children('.mes_text').text(getMessage);
+                                // Add another swipe to the swipes array
+                                swipes.push(getMessage);
+                                swipeSetArrowVisibility();
+                            }
+                            else {
+                                addOneMessage(chat[chat.length - 1]);
+                            }
                             $("#send_but").css("display", "block");
                             $("#loading_mes").css("display", "none");
                             saveChat();
@@ -2001,6 +2066,8 @@ $("#dialogue_del_mes_cancel").click(function () {
     this_del_mes = 0;
 
 });
+
+// Delete messages button
 $("#dialogue_del_mes_ok").click(function () {
     $('#dialogue_del_mes').css('display', 'none');
     $('#send_form').css('display', css_send_form_display);
@@ -2021,9 +2088,42 @@ $("#dialogue_del_mes_ok").click(function () {
         var $textchat = $('#chat');
         $textchat.scrollTop($textchat[0].scrollHeight);
     }
+    // Change visibility since some messages got deleted
+    swipeSetArrowVisibility();
     this_del_mes = 0;
 
 
+});
+
+// Handlers for left/right swipe buttons on the last bot message
+$("#chat").on("click", ".left_arrow", function () {
+    // replace the last message with the last one from swipes array
+    if (current_swipe > 0) {
+        console.log("Moving to the previous swipe");
+        current_swipe--;
+        // current_swipe starts at 0 when there are no swipes
+        let last_swipe = swipes[current_swipe];
+        // change the message text to the previous swipe
+        chat[chat.length - 1]["text"] = last_swipe;
+        $(".mes_text:last").html(last_swipe);
+        // save the chat with the previous swipe
+        saveChat();
+    }
+    swipeSetArrowVisibility();
+});
+
+$("#chat").on("click", ".right_arrow", function () {
+    console.log("Generating a new swipe");
+    current_swipe++;
+    if (current_swipe > (swipes.length - 1)) {
+        // if we're at the end of the swipes array, generate a new one
+        Generate("swipe");
+    } else {
+        // otherwise, move to the next swipe
+        $(".mes_text:last").html(swipes[current_swipe]);
+        saveChat();
+        swipeSetArrowVisibility();
+    }
 });
 
 
