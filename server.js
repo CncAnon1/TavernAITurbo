@@ -38,11 +38,13 @@ var api_server = "";//"http://127.0.0.1:5000";
 
 var api_novelai = "https://api.novelai.net";
 var api_openai = "https://api.openai.com/v1";
+var api_scale = "https://dashboard.scale.com/spellbook/api/v2/deploy/q64278n";
 
 var response_get_story;
 var response_generate;
 var response_generate_novel;
 var response_generate_openai;
+var response_generate_scale;
 var request_promt;
 var response_promt;
 var characters = {};
@@ -53,9 +55,11 @@ var response_dw_bg;
 var response_getstatus;
 var response_getstatus_novel;
 var response_getstatus_openai;
+var response_getstatus_scale;
 var response_getlastversion;
 var api_key_novel;
 var api_key_openai;
+var api_key_scale = "clfbo9iia00a6un1a5pp5s2mz";
 
 var is_colab = false;
 var charactersPath = 'public/characters/';
@@ -176,6 +180,8 @@ app.get("/notes/*", function(request, response){
     //response.send("<h1>Главная страница</h1>");
 });
 app.post("/getlastversion", jsonParser, function(request, response_getlastversion = response){
+  // disabled because it seems to be broken
+  return response_getlastversion.send({version: '0.0.0'});
     if(!request.body) return response_getlastversion.sendStatus(400);
     
     const repo = 'TavernAI/TavernAI';
@@ -693,6 +699,8 @@ app.post('/getsettings', jsonParser, (request, response) => { //Wintermute's cod
     const novelai_setting_names = [];
     const openai_settings = [];
     const openai_setting_names = [];
+    const scale_settings = [];
+    const scale_setting_names = [];
     const settings = fs.readFileSync('public/settings.json', 'utf8',  (err, data) => {
     if (err) return response.sendStatus(500);
 
@@ -769,6 +777,33 @@ app.post('/getsettings', jsonParser, (request, response) => { //Wintermute's cod
           openai_setting_names.push(item.replace(/\.[^/.]+$/, ''));
       });
     
+    //scale
+    if (!fs.existsSync('public/Scale Settings')) {
+        fs.mkdirSync('public/Scale Settings');
+    }
+    const files4 = fs
+    .readdirSync('public/Scale Settings')
+    .sort(
+        (a, b) =>
+        new Date(fs.statSync(`public/Scale Settings/${b}`).mtime) -
+        new Date(fs.statSync(`public/Scale Settings/${a}`).mtime)
+    );
+    
+    files4.forEach(item => {
+    const files4 = fs.readFileSync(
+        `public/Scale Settings/${item}`,
+        'utf8',
+        (err, data) => {
+            if (err) return response.sendStatus(500);
+
+            return data;
+        }
+    );
+
+        scale_settings.push(files4);
+        scale_setting_names.push(item.replace(/\.[^/.]+$/, ''));
+    });
+    
       
     response.send({
         settings,
@@ -777,7 +812,9 @@ app.post('/getsettings', jsonParser, (request, response) => { //Wintermute's cod
         novelai_settings,
         novelai_setting_names,
         openai_settings,
-        openai_setting_names
+        openai_setting_names,
+        scale_settings,
+        scale_setting_names
     });
 });
 
@@ -978,6 +1015,44 @@ app.post("/getallchatsofchatacter", jsonParser, function(request, response){
     
 });
 
+app.post("/getstatus_scale", jsonParser, function(request, response_getstatus_scale = response){
+    console.log("getstatus_scale", request.body);
+    if(!request.body) return response_getstatus_scale.sendStatus(400);
+    api_key_scale = request.body.key;
+    var args = {
+        headers: { "Authorization": "Basic "+ api_key_scale }
+    };
+    client.post(api_scale,args, function (data, response) {
+      console.log("getstatus_scale response", response.statusCode);
+        if(response.statusCode == 200){
+            console.log(data);
+            response_getstatus_scale.send(data);//data);
+        }
+        if (response.statusCode == 400) {
+          if (data[0].code === 'invalid_type' && data[0].expected === 'object' && data[0].received === 'undefined') {
+            console.log('Scale is authed');
+            // send 200 back so the client knows we're authed
+            response_getstatus_scale.send({ok: true});
+          } else {
+            console.log('Validation error', data);
+            response_getstatus_scale.send({error: true});
+          }
+        }
+        if(response.statusCode == 401){
+            console.log('Access Token is incorrect.', data);
+            response_getstatus_scale.send({error: true});
+        }
+        if(response.statusCode == 500 || response.statusCode == 501 || response.statusCode == 501 || response.statusCode == 503 || response.statusCode == 507){
+            console.log(data);
+            response_getstatus_scale.send({error: true});
+        }
+    }).on('error', function (err) {
+        console.log('');
+	      console.log('something went wrong on the request', err.request.options);
+        response_getstatus_scale.send({error: true});
+    });
+});
+
 //***********Open.ai API 
 
 app.post("/getstatus_openai", jsonParser, function(request, response_getstatus_openai = response){
@@ -992,7 +1067,7 @@ app.post("/getstatus_openai", jsonParser, function(request, response_getstatus_o
             response_getstatus_openai.send(data);//data);
         }
         if(response.statusCode == 401){
-            console.log('Access Token is incorrect.');
+            console.log('Access Token is incorrect (openAI).', data);
             response_getstatus_openai.send({error: true});
         }
         if(response.statusCode == 500 || response.statusCode == 501 || response.statusCode == 501 || response.statusCode == 503 || response.statusCode == 507){
@@ -1004,6 +1079,66 @@ app.post("/getstatus_openai", jsonParser, function(request, response_getstatus_o
 	//console.log('something went wrong on the request', err.request.options);
         response_getstatus_openai.send({error: true});
     });
+});
+
+app.post("/generate_scale", jsonParser, function(request, response_generate_scale = response) {
+   if (!request.body) return response_generate_scale.sendStatus(400);
+   
+   console.log(request.body);
+   
+   // flatten OpenAI chat completion payload into a single string for Scale
+    var messagePayload = [];
+    request.body.messages.forEach(m => {
+      if (m.role === 'system') {
+        messagePayload.push("System: " + m.content);
+      } else {
+        messagePayload.push(m.role + ": " + m.content);
+      }
+    });
+   
+   var config = {
+     method: "post",
+     url: api_scale,
+     headers: {
+       "Content-Type": "application/json",
+       Authorization: "Basic " + api_key_scale,
+     },
+     data: {
+       input: { input: messagePayload.join("\n") },
+     },
+   };
+   
+   axios(config)
+   .then(function (response) {
+       if (response.status <= 299) {
+            console.log(response.data);
+            response_generate_scale.send(response.data);
+       } else if (response.status == 400) {
+            console.log('Validation error');
+            response_generate_scale.send({ error: true });
+       } else if (response.status == 401) {
+            console.log('Access Token is incorrect');
+            response_generate_scale.send({ error: true });
+       } else if (response.status == 402) {
+            console.log('An active subscription is required to access this endpoint');
+            response_generate_scale.send({ error: true });
+       } else if (response.status == 500 || response.status == 409) {
+            console.log(response.data);
+            response_generate_scale.send({ error: true });
+       }
+   })
+   .catch(function (error) {
+       if(error.response){
+           if (request.body.stream) {
+               error.response.data.on('data', chunk => {
+                   console.log(chunk.toString());
+               });                  
+           } else {
+               console.log(error.response.data);
+           }
+       }
+       response_generate_scale.send({ error: true });
+   });
 });
 
 app.post("/generate_openai", jsonParser, function(request, response_generate_openai = response){

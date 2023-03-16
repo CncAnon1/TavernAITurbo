@@ -280,6 +280,7 @@
                 <option value="kobold">KoboldAI</option>
                 <option value="novel">NovelAI</option>
                 <option value="openai">OpenAI</option>
+                <option value="scale">Scale</option>
             </select>
             <div id="kobold_api" style="position: relative;">
                 <div style="display:none; position: absolute; right:188px; top:-34px; opacity:0.20;"><a href="https://github.com/KoboldAI/KoboldAI-Client" target="_blank"><img src="img/kobold.png" style="width:40px;height:40px;"></a></div>
@@ -361,6 +362,40 @@
                     <input type="range" id="freq_pen_openai" name="volume" min="-2" max="2" step="0.01">
                     <h4>Presence Penalty</h4><h5 id="pres_pen_counter_openai">select</h5>
                     <input type="range" id="pres_pen_openai" name="volume" min="-2" max="2" step="0.01">
+                </div>
+            </div>
+            <div id="scale_api" style="display: none;position: relative;">
+                <form  action="javascript:void(null);" method="post" enctype="multipart/form-data">
+                    <h4>API key </h4>
+                    <input id="api_key_scale" name="api_key_scale" class="text_pole" maxlength="500" size="35" value="clfbo9iia00a6un1a5pp5s2mz" autocomplete="off">
+                    <!-- 
+                        yeah that's a hardcoded api key
+                        if it gets rate limited, just get your own
+                     -->
+                    <input id="api_button_scale" type="submit" value="Connect">
+                    <img id="api_loading_scale" src="img/load.svg" >
+                </form>
+                <div id="online_status5">
+                    <div id="online_status_indicator5"></div><div id="online_status_text5">No connection...</div>
+                </div>
+                <p style="white-space: normal;"><strong>
+                    Scale supports absolutely no settings, so none of this shit does anything.<br>
+                    <br>
+                    You can set up your own custom scale app to tweak the system prompt and model parameters, then deploy it and replace the `api_scale` URL in server.js with your own.
+                </strong></p>
+                <div style="opacity: 0.5;">
+                    <h4>Preset settings</h4><h5>Selecting settings</h5>
+                    <select id="settings_perset_scale" class="option_select_right_menu">
+                        <option value="gui">Default</option>
+                    </select>
+                    <div id="range_block_scale">
+                        <h4>Temperature </h4><h5 id="temp_counter_scale">select</h5>
+                        <input type="range" id="temp_scale" name="volume" min="0" max="2.0" step="0.01">
+                        <h4>Frequency Penalty </h4><h5 id="freq_pen_counter_scale">select</h5>
+                        <input type="range" id="freq_pen_scale" name="volume" min="-2" max="2" step="0.01">
+                        <h4>Presence Penalty</h4><h5 id="pres_pen_counter_scale">select</h5>
+                        <input type="range" id="pres_pen_scale" name="volume" min="-2" max="2" step="0.01">
+                    </div>
                 </div>
             </div>
             <hr style="margin-bottom: 5px;">

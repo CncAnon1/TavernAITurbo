@@ -57,9 +57,13 @@ var interval_timer_novel = setInterval(getStatusNovel, 3000);
 var is_get_status = false;
 var is_get_status_novel = false;
 var is_get_status_openai = false;
+var is_get_status_scale = false;
 var is_api_button_press = false;
 var is_api_button_press_novel = false;
 var is_api_button_press_openai = false;
+var is_api_button_press_scale = false;
+
+var should_use_scale = false;
 
 var is_send_press = false;//Send generation
 var add_mes_without_animation = false;
@@ -239,7 +243,13 @@ $('#characloud_url').click(function () {
     window.open('https://boosty.to/tavernai', '_blank');
 });
 function checkOnlineStatus() {
-    //console.log(online_status);
+    console.trace("checkOnlineStatus",{
+        is_get_status,
+        is_get_status_novel,
+        is_get_status_openai,
+        is_get_status_scale,
+        online_status
+    });
     if (online_status == 'no_connection') {
         $("#online_status_indicator").css("background-color", "red");
         $("#online_status").css("opacity", 0.3);
@@ -250,9 +260,13 @@ function checkOnlineStatus() {
         $("#online_status_text3").html("No connection...");
         $("#online_status_indicator4").css("background-color", "red");
         $("#online_status_text4").html("No connection...");
+        $("#online_status_indicator5").css("background-color", "red");
+        $("#online_status_text5").html("No connection...");
         is_get_status = false;
         is_get_status_novel = false;
         is_get_status_openai = false;
+        is_get_status_scale = false;
+        should_use_scale = false;
     } else {
         $("#online_status_indicator").css("background-color", "black");
         $("#online_status").css("opacity", 0.0);
@@ -263,6 +277,11 @@ function checkOnlineStatus() {
         $("#online_status_text3").html(online_status);
         $("#online_status_indicator4").css("background-color", "green");
         $("#online_status_text4").html(online_status);
+        $("#online_status_indicator5").css("background-color", "green");
+        $("#online_status_text5").html(online_status);
+        if (is_get_status_scale) {
+            should_use_scale = true;
+        }
     }
 
 }
@@ -321,6 +340,7 @@ async function getStatus() {
             contentType: "application/json",
             //processData: false, 
             success: function (data) {
+                console.log("getStatus success", data)
                 online_status = data.result;
                 if (online_status == undefined) {
                     online_status = 'no_connection';
@@ -339,6 +359,7 @@ async function getStatus() {
                 }
             },
             error: function (jqXHR, exception) {
+                console.log("getStatus error")
                 console.log(exception);
                 console.log(jqXHR);
                 online_status = 'no_connection';
@@ -348,6 +369,7 @@ async function getStatus() {
         });
     } else {
         if (is_get_status_novel != true && is_get_status_openai != true) {
+            console.log("getStatus else")
             online_status = 'no_connection';
         }
     }
@@ -988,6 +1010,15 @@ async function Generate(type) {
 
             var generate_url = '/generate_openai';
             var streaming = stream_openai;
+            
+            if (should_use_scale) {
+                console.log("Using scale spellbook backend instead of OpenAI");
+                generate_url = '/generate_scale';
+                streaming = false;
+                generate_data = {
+                    messages: openai_msgs_tosend,
+                };
+            }
 
             var last_view_mes = count_view_mes;
             jQuery.ajax({
@@ -1064,6 +1095,9 @@ async function Generate(type) {
                         }
                         if (main_api == 'openai') {
                             var getMessage = data.choices[0]["message"]["content"];
+                        }
+                        if (main_api == 'scale') {
+                            var getMessage = data.output;
                         }
 
 
@@ -2131,10 +2165,12 @@ $("#settings_perset_openai").change(function () {
     saveSettings();
 });
 $("#main_api").change(function () {
+    console.log("main api changed");
     is_pygmalion = false;
     is_get_status = false;
     is_get_status_novel = false;
     is_get_status_openai = false;
+    is_get_status_scale = false;
     online_status = 'no_connection';
     checkOnlineStatus();
     changeMainAPI();
@@ -2171,6 +2207,18 @@ function changeMainAPI() {
         $('#tweak_hr').css("display", "block");
         $('#tweak_container').css("display", "block");
         main_api = 'openai';
+        $('#max_context_block').css('display', 'none');
+        $('#amount_gen_block').css('display', 'none');
+    } 
+    if ($('#main_api').find(":selected").val() == 'scale') {
+        $('#kobold_api').css("display", "none");
+        $('#novel_api').css("display", "none");
+        $('#openai_api').css("display", "none");
+        $('#scale_api').css("display", "block");
+        $('#openai_max_context_block').css("display", "none");
+        $('#tweak_hr').css("display", "none");
+        $('#tweak_container').css("display", "none");
+        main_api = 'scale';
         $('#max_context_block').css('display', 'none');
         $('#amount_gen_block').css('display', 'none');
     }
@@ -2415,6 +2463,29 @@ async function getSettings(type) {//timer
 
                 preset_settings_openai = settings.preset_settings_openai;
                 $("#settings_perset_openai option[value=" + openai_setting_names[preset_settings_openai] + "]").attr('selected', 'true');
+                
+                //Scale
+                if (settings.api_key_scale != undefined) {
+                    api_key_scale = settings.api_key_scale;
+                    $("#api_key_scale").val(api_key_scale);
+                }
+                scale_setting_names = data.scale_setting_names;
+                scale_settings = data.scale_settings;
+                scale_settings.forEach(function (item, i, arr) {
+                    scale_settings[i] = JSON.parse(item);
+                });
+                var arr_holder = {};
+                $("#settings_perset_scale").empty();
+                scale_setting_names.forEach(function (item, i, arr) {
+                    arr_holder[item] = i;
+                    $('#settings_perset_scale').append('<option value=' + i + '>' + item + '</option>');
+
+                });
+                scale_setting_names = {};
+                scale_setting_names = arr_holder;
+
+                preset_settings_scale = settings.preset_settings_scale;
+                $("#settings_perset_scale option[value=" + scale_setting_names[preset_settings_scale] + "]").attr('selected', 'true');
 
                 //Kobold
                 koboldai_setting_names = data.koboldai_setting_names;
@@ -2837,7 +2908,7 @@ async function getStatusNovel() {
             dataType: "json",
             contentType: "application/json",
             success: function (data) {
-
+                console.log("getStatusNovel success");
 
                 if (data.error != true) {
                     //var settings2 = JSON.parse(data);
@@ -2862,6 +2933,7 @@ async function getStatusNovel() {
                 resultCheckStatusNovel();
             },
             error: function (jqXHR, exception) {
+                console.log("getStatusNovel error");
                 online_status = 'no_connection';
                 console.log(exception);
                 console.log(jqXHR);
@@ -2869,7 +2941,8 @@ async function getStatusNovel() {
             }
         });
     } else {
-        if (!is_get_status && !is_get_status_openai) {
+        if (!is_get_status && !is_get_status_openai && !is_get_status_scale) {
+            console.log("getStatusNovel else")
             online_status = 'no_connection';
         }
     }
@@ -2951,6 +3024,7 @@ async function getStatusOpen() {
                 resultCheckStatusOpen();
             },
             error: function (jqXHR, exception) {
+                console.log("getStatusOpen error");
                 online_status = 'no_connection';
                 console.log(exception);
                 console.log(jqXHR);
@@ -2959,6 +3033,7 @@ async function getStatusOpen() {
         });
     } else {
         if (!is_get_status && !is_get_status_novel) {
+            console.log("getStatusOpen else");
             online_status = 'no_connection';
         }
     }
@@ -2982,6 +3057,68 @@ function resultCheckStatusOpen() {
     $("#api_loading_openai").css("display", 'none');
     $("#api_button_openai").css("display", 'inline-block');
 }
+
+//************************************************************
+//************************SCALE****************************
+//************************************************************
+$("#api_button_scale").click(function () {
+    if ($('#api_key_scale').val() != '') {
+        $("#api_loading_scale").css("display", 'inline-block');
+        $("#api_button_scale").css("display", 'none');
+        api_key_scale = $('#api_key_scale').val();
+        api_key_scale = $.trim(api_key_scale);
+        //console.log("1: "+api_server);
+        saveSettings();
+        is_get_status_scale = true;
+        is_api_button_press_scale = true;
+        getStatusScale();
+    }
+});
+
+async function resultCheckStatusScale() {
+    is_api_button_press_scale = false;
+    checkOnlineStatus();
+    $("#api_loading_scale").css("display", 'none');
+    $("#api_button_scale").css("display", 'inline-block');
+}
+
+async function getStatusScale() {
+    if (is_get_status_scale) {
+        var data = { key: api_key_scale };
+
+        jQuery.ajax({
+            type: 'POST', // 
+            url: '/getstatus_scale', // 
+            data: JSON.stringify(data),
+            beforeSend: function () {
+                //$('#create_button').attr('value','Creating...'); 
+            },
+            cache: false,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data) {
+                console.log("getstatus_scale success", data);
+                if (!('error' in data)) online_status = 'Valid';
+                console.log("online_status", online_status);
+                resultCheckStatusScale();
+            },
+            error: function (jqXHR, exception) {
+                console.log("getstatus_scale error", jqXHR, exception);
+                online_status = 'no_connection';
+                console.log(exception);
+                console.log(jqXHR);
+                resultCheckStatusScale();
+            }
+        });
+    } else {
+        if (!is_get_status && !is_get_status_novel) {
+            console.log("getstatus_scale no connection");
+            online_status = 'no_connection';
+        }
+    }
+}
+
+
 $("#anchor_order").change(function () {
     anchor_order = parseInt($('#anchor_order').find(":selected").val());
     saveSettings();
