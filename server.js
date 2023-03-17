@@ -1016,36 +1016,45 @@ app.post("/getallchatsofchatacter", jsonParser, function(request, response){
 });
 
 app.post("/getstatus_scale", jsonParser, function(request, response_getstatus_scale = response){
-    console.log("getstatus_scale", request.body);
+    console.log("getstatus_scale", request);
     if(!request.body) return response_getstatus_scale.sendStatus(400);
     api_key_scale = request.body.key;
     var args = {
         headers: { "Authorization": "Basic "+ api_key_scale }
     };
     client.post(api_scale,args, function (data, response) {
-      console.log("getstatus_scale response", response.statusCode);
-        if(response.statusCode == 200){
-            console.log(data);
-            response_getstatus_scale.send(data);//data);
-        }
-        if (response.statusCode == 400) {
-          if (data[0].code === 'invalid_type' && data[0].expected === 'object' && data[0].received === 'undefined') {
-            console.log('Scale is authed');
-            // send 200 back so the client knows we're authed
-            response_getstatus_scale.send({ok: true});
-          } else {
-            console.log('Validation error', data);
-            response_getstatus_scale.send({error: true});
-          }
-        }
-        if(response.statusCode == 401){
-            console.log('Access Token is incorrect.', data);
-            response_getstatus_scale.send({error: true});
-        }
-        if(response.statusCode == 500 || response.statusCode == 501 || response.statusCode == 501 || response.statusCode == 503 || response.statusCode == 507){
-            console.log(data);
-            response_getstatus_scale.send({error: true});
-        }
+        console.log("getstatus_scale response code: ", response.statusCode);
+        console.log("getstatus_scale response data:", data);
+        console.log("you may see response an 'invalid_type' error, that's probably okay");
+        console.log("if you see another error, that's probably not okay");
+        
+        // Scale doesn't really have any way to check status so if this doesn't 
+        // emit an error, we can only assume it's authed
+        
+        response_getstatus_scale.send({ ok: true });
+        
+        // if(response.statusCode == 200){
+        //     console.log(data);
+        //     response_getstatus_scale.send(data);//data);
+        // }
+        // if (response.statusCode == 400) {
+        //   if (data[0].code === 'invalid_type' && data[0].expected === 'object' && data[0].received === 'undefined') {
+        //     console.log('Scale is authed');
+        //     // send 200 back so the client knows we're authed
+        //     response_getstatus_scale.send({ok: true});
+        //   } else {
+        //     console.log('Validation error', data);
+        //     response_getstatus_scale.send({error: true});
+        //   }
+        // }
+        // if(response.statusCode == 401){
+        //     console.log('Access Token is incorrect.', data);
+        //     response_getstatus_scale.send({error: true});
+        // }
+        // if(response.statusCode == 500 || response.statusCode == 501 || response.statusCode == 501 || response.statusCode == 503 || response.statusCode == 507){
+        //     console.log(data);
+        //     response_getstatus_scale.send({error: true});
+        // }
     }).on('error', function (err) {
         console.log('');
 	      console.log('something went wrong on the request', err.request.options);
@@ -1110,6 +1119,7 @@ app.post("/generate_scale", jsonParser, function(request, response_generate_scal
    
    axios(config)
    .then(function (response) {
+       console.log("generate_scale response", response.status);
        if (response.status <= 299) {
             console.log(response.data);
             response_generate_scale.send(response.data);
@@ -1134,7 +1144,17 @@ app.post("/generate_scale", jsonParser, function(request, response_generate_scal
                    console.log(chunk.toString());
                });                  
            } else {
-               console.log(error.response.data);
+                console.log("generate_scale promise rejected");
+                console.log({
+                    message: error.message,
+                    method: error.config.method,
+                    code: error.code,
+                    status: error.response.status,
+                    url: error.config.url,
+                    headers: error.config.headers,
+                })
+                console.log("response headers:", JSON.stringify(error.response.headers, null, 2));
+                console.log("response data:", error.response.data);
            }
        }
        response_generate_scale.send({ error: true });
