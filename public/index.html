@@ -366,18 +366,23 @@
             </div>
             <div id="scale_api" style="display: none;position: relative;">
                 <form  action="javascript:void(null);" method="post" enctype="multipart/form-data">
-                    <h4>API key </h4>
-                    <input id="api_key_scale" name="api_key_scale" class="text_pole" maxlength="500" size="35" value="clfbo9iia00a6un1a5pp5s2mz" autocomplete="off">
+                    <h4>API key / url</h4>
+                    <div style="display:flex; flex-direction:column">
+                        <input id="api_key_scale" name="api_key_scale" class="text_pole" maxlength="500" size="35" value="clfbo9iia00a6un1a5pp5s2mz" autocomplete="off">
+                        <input id="api_url_scale" name="api_url_scale" class="text_pole" maxlength="500" size="35"
+                            value="https://dashboard.scale.com/spellbook/api/v2/deploy/q64278n" autocomplete="off">
+                    </div>
                     <!-- 
                         yeah that's a hardcoded api key
                         if it gets rate limited, just get your own
                      -->
                     <input id="api_button_scale" type="submit" value="Connect">
-                    <img id="api_loading_scale" src="img/load.svg" >
+                    <img id="api_loading_scale" src="img/load.svg" style="display:none" >
                 </form>
                 <div id="online_status5">
                     <div id="online_status_indicator5"></div><div id="online_status_text5">No connection...</div>
                 </div>
+                <p style="white-space: normal;">Scale doesn't have a way to confirm that your key is correct. If you see "Valid" here but you still can't send prompts, confirm your key/url.</p>
                 <p style="white-space: normal;"><strong>
                     Scale supports absolutely no settings, so none of this shit does anything.<br>
                     <br>

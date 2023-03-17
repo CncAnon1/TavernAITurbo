@@ -128,6 +128,10 @@ var openai_max_tokens = 300;
 var openai_msgs = [];
 var openai_msgs_example = [];
 
+// scale settings
+var api_key_scale = "";
+var api_url_scale = "";
+
 // extra tweaks
 var keep_example_dialogue = true;
 var nsfw_toggle = true;
@@ -2481,6 +2485,10 @@ async function getSettings(type) {//timer
                     api_key_scale = settings.api_key_scale;
                     $("#api_key_scale").val(api_key_scale);
                 }
+                if (settings.api_url_scale != undefined) {
+                    api_url_scale = settings.api_url_scale;
+                    $("#api_url_scale").val(api_url_scale);
+                }
                 scale_setting_names = data.scale_setting_names;
                 scale_settings = data.scale_settings;
                 scale_settings.forEach(function (item, i, arr) {
@@ -2700,7 +2708,9 @@ async function saveSettings(type) {
             wrap_in_quotes: wrap_in_quotes,
             nsfw_first: nsfw_first,
             main_prompt: main_prompt,
-            nsfw_prompt: nsfw_prompt
+            nsfw_prompt: nsfw_prompt,
+            api_key_scale: api_key_scale,
+            api_url_scale: api_url_scale,
         }),
         beforeSend: function () {
 
@@ -3079,7 +3089,8 @@ $("#api_button_scale").click(function () {
         $("#api_button_scale").css("display", 'none');
         api_key_scale = $('#api_key_scale').val();
         api_key_scale = $.trim(api_key_scale);
-        //console.log("1: "+api_server);
+        api_url_scale = $('#api_url_scale').val();
+        api_url_scale = $.trim(api_url_scale);
         saveSettings();
         is_get_status_scale = true;
         is_api_button_press_scale = true;
@@ -3096,7 +3107,7 @@ async function resultCheckStatusScale() {
 
 async function getStatusScale() {
     if (is_get_status_scale) {
-        var data = { key: api_key_scale };
+        var data = { key: api_key_scale, url: api_url_scale };
 
         jQuery.ajax({
             type: 'POST', // 
@@ -3110,7 +3121,7 @@ async function getStatusScale() {
             contentType: "application/json",
             success: function (data) {
                 console.log("getstatus_scale success", data);
-                if (!('error' in data)) online_status = 'Valid';
+                if (!('error' in data)) online_status = 'Valid (see disclaimer below)';
                 console.log("online_status", online_status);
                 resultCheckStatusScale();
             },

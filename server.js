@@ -1016,13 +1016,15 @@ app.post("/getallchatsofchatacter", jsonParser, function(request, response){
 });
 
 app.post("/getstatus_scale", jsonParser, function(request, response_getstatus_scale = response){
-    console.log("getstatus_scale", request);
+    console.log("getstatus_scale", request.body);
     if(!request.body) return response_getstatus_scale.sendStatus(400);
     api_key_scale = request.body.key;
+    api_url_scale = request.body.url;
     var args = {
         headers: { "Authorization": "Basic "+ api_key_scale }
     };
-    client.post(api_scale,args, function (data, response) {
+    client.post(api_url_scale,args, function (data, response) {
+        console.log("authing with", api_url_scale);
         console.log("getstatus_scale response code: ", response.statusCode);
         console.log("getstatus_scale response data:", data);
         console.log("you may see response an 'invalid_type' error, that's probably okay");
@@ -1031,7 +1033,12 @@ app.post("/getstatus_scale", jsonParser, function(request, response_getstatus_sc
         // Scale doesn't really have any way to check status so if this doesn't 
         // emit an error, we can only assume it's authed
         
-        response_getstatus_scale.send({ ok: true });
+        if (response.statusCode == 400 || response.statusCode == 200) {
+            response_getstatus_scale.send({ ok: true });
+        }
+        else {
+            response_getstatus_scale.send({ error: true });
+        }
         
         // if(response.statusCode == 200){
         //     console.log(data);
@@ -1105,9 +1112,10 @@ app.post("/generate_scale", jsonParser, function(request, response_generate_scal
       }
     });
    
+    console.log("sending request to", api_url_scale);
    var config = {
      method: "post",
-     url: api_scale,
+     url: api_url_scale,
      headers: {
        "Content-Type": "application/json",
        Authorization: "Basic " + api_key_scale,
