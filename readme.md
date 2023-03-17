@@ -20,6 +20,7 @@ Complete the next response in this fictional roleplay chat.
 
 {{ input }}
 ```
+- 💡 Make sure to set the model to GPT4, and increase temperature to around 0.6 - 0.9 to make responses more varied.
 - Click "Save New Variant"
 - Go to your new Variant and click Deploy
 ![https://i.imgur.com/5Tuj55L.png](https://i.imgur.com/5Tuj55L.png)
