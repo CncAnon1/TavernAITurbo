@@ -19,6 +19,16 @@ Complete the next response in this fictional roleplay chat.
 - This will create an API key and URL for your bot.
 ![https://i.imgur.com/eydf2XC.png](https://i.imgur.com/eydf2XC.png)
 - Paste the URL into the `api_scale` variable in server.js
-- Paste the key into the usual place in TavernAI
+```javascript
+# In server.js, around line 41
+var api_scale = "https://dashboard.scale.com/spellbook/api/v2/deploy/q64278n"; // put your deployment URL here
+```
+- Paste the key into the usual place in TavernAI, or hardcode it in server.js
+```javascript
+# In server.js, around line 62
+var api_key_scale = "your key here";
+```
 
-NOTE: You don't actually have to do this and you can use my hardcoded URL/key, but know that I can see anything you send to the bot.
+NOTE: You don't actually have to do this and you can use my hardcoded URL/key, but know that I can see anything you send to the bot unless you deploy your own.
+
+After setting it up as described above, run it with `.\Start.bat`, then go to the Settings tab in Tavern's sidebar and choose "Scale" from the API dropdown menu.
