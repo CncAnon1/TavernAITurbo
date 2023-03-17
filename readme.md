@@ -5,7 +5,8 @@ quick hack to get tavernai to work with spellbook, based off of @cncanon's mod
 ## Usage
 - Create scale spellbook account at https://spellbook.scale.com.
 - Create an "App" (name/desc doesn't matter)
-- Create a "Variant", which sets the parameters (preamble prompt, model temperature, stop sequence, respnse token limit, etc) for your bot
+- Create a "Variant", which sets the parameters (system prompt, model, temperature, stop sequence, respnse token limit, etc) for your bot
+- **Make sure to select GPT-4, you retard**
 ![https://i.imgur.com/ipmWkmu.png](https://i.imgur.com/ipmWkmu.png)
 - Paste this in the "User" section of the prompt.
 ```
