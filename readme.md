@@ -17,7 +17,7 @@ If you want your own private (lol) bot, follow the guide below.
 - Create a "Variant", which sets the parameters (system prompt, model, temperature, stop sequence, respnse token limit, etc) for your bot
 - **Make sure to select GPT-4, you retard**
 ![https://i.imgur.com/ipmWkmu.png](https://i.imgur.com/ipmWkmu.png)
-- Paste this in the "User" section of the prompt.
+- Replace the contents of the "User" section of the prompt with the following:
 ```
 Complete the next response in this fictional roleplay chat.
 
