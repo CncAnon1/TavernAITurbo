@@ -85,6 +85,7 @@ var temp = 0.5;
 var amount_gen = 80;
 var max_context = 2048;//2048;
 var openai_max_context = 4095;
+var scale_max_context = 7750;
 var rep_pen = 1;
 var rep_pen_size = 100;
 
@@ -124,6 +125,7 @@ var openai_setting_names;
 var preset_settings_openai = 'Default';
 
 var openai_max_tokens = 300;
+var scale_max_tokens = 400;
 
 var openai_msgs = [];
 var openai_msgs_example = [];
@@ -131,6 +133,9 @@ var openai_msgs_example = [];
 // scale settings
 var api_key_scale = "";
 var api_url_scale = "";
+var scale_settings;
+var scale_setting_names;
+var preset_settings_scale = 'Default';
 
 // extra tweaks
 var keep_example_dialogue = true;
@@ -826,6 +831,16 @@ async function Generate(type) {
         }
 
         let this_max_context = openai_max_context;
+        let this_max_tokens = openai_max_tokens;
+        
+        // If we're using Scale, the user (presumably) is using GPT4 so we want
+        // to be able to use a larger context. We're still using the GPT3
+        // tokenization API so we can't go too close to the full 8192 limit.
+        if (should_use_scale) {
+            console.log(`Using Scale; increasing max context to ${scale_max_context} and max repsonse tokens to ${scale_max_tokens}`);
+            this_max_context = scale_max_context;
+            this_max_tokens = scale_max_tokens;
+        }
 
         var i = 0;
 
@@ -941,7 +956,7 @@ async function Generate(type) {
                     let item = openai_msgs[j];
                     let item_count = countTokens(item);
                     // If we have enough space for this message, also account for the max assistant reply size
-                    if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
+                    if ((total_count + item_count) < (this_max_context - this_max_tokens)) {
                         openai_msgs_tosend.push(item);
                         total_count += item_count;
                     }
@@ -955,7 +970,7 @@ async function Generate(type) {
                     let item = openai_msgs[j];
                     let item_count = countTokens(item);
                     // If we have enough space for this message, also account for the max assistant reply size
-                    if ((total_count + item_count) < (this_max_context - openai_max_tokens)) {
+                    if ((total_count + item_count) < (this_max_context - this_max_tokens)) {
                         openai_msgs_tosend.push(item);
                         total_count += item_count;
                     }
@@ -991,7 +1006,7 @@ async function Generate(type) {
                         if (example_block.length == 0) { continue; }
                         let example_count = countTokens(example_block[k]);
                         // add all the messages from the example
-                        if ((total_count + example_count + start_chat_count) < (this_max_context - openai_max_tokens)) {
+                        if ((total_count + example_count + start_chat_count) < (this_max_context - this_max_tokens)) {
                             if (k == 0) {
                                 examples_tosend.push(new_chat_msg);
                                 total_count += start_chat_count;
@@ -2119,6 +2134,12 @@ $("#settings_perset").change(function () {
 
         $('#openai_max_context').val(openai_max_context);
         $('#openai_max_context_counter').html(openai_max_context + " Tokens");
+        
+        $('#scale_max_context').val(scale_max_context);
+        $('#scale_max_context_counter').html(scale_max_context + " Tokens");
+        
+        $('#scale_max_tokens').val(scale_max_tokens);
+        $('#scale_max_tokens_counter').html(scale_max_tokens + " Tokens");
 
         $('#rep_pen').val(rep_pen);
         $('#rep_pen_counter').html(rep_pen);
@@ -2180,6 +2201,22 @@ $("#settings_perset_openai").change(function () {
 
     saveSettings();
 });
+$("#settings_perset_scale").change(function () {
+    preset_settings_scale = $('#settings_perset_scale').find(":selected").text();
+
+    temp_scale = scale_settings[scale_setting_names[preset_settings_scale]].temperature;
+    freq_pen_scale = scale_settings[scale_setting_names[preset_settings_scale]].frequency_penalty;
+    pres_pen_scale = scale_settings[scale_setting_names[preset_settings_scale]].presence_penalty;
+
+    $('#temp_scale').val(temp_scale);
+    $('#temp_counter_scale').html(temp_scale);
+    $('#freq_pen_scale').val(freq_pen_scale);
+    $('#freq_pen_counter_scale').html(freq_pen_scale);
+    $('#pres_pen_scale').val(pres_pen_scale);
+    $('#pres_pen_counter_scale').html(pres_pen_scale);
+
+    saveSettings();
+});
 $("#main_api").change(function () {
     console.log("main api changed");
     is_pygmalion = false;
@@ -2198,6 +2235,8 @@ function changeMainAPI() {
         $('#novel_api').css("display", "none");
         $('#openai_api').css("display", "none");
         $('#openai_max_context_block').css("display", "none");
+        $('#scale_max_context_block').css("display", "none");
+        $('#scale_max_tokens_block').css("display", "none");
         $('#tweak_hr').css("display", "none");
         $('#tweak_container').css("display", "none");
         main_api = 'kobold';
@@ -2209,6 +2248,8 @@ function changeMainAPI() {
         $('#novel_api').css("display", "block");
         $('#openai_api').css("display", "none");
         $('#openai_max_context_block').css("display", "none");
+        $('#scale_max_context_block').css("display", "none");
+        $('#scale_max_tokens_block').css("display", "none");
         $('#tweak_hr').css("display", "none");
         $('#tweak_container').css("display", "none");
         main_api = 'novel';
@@ -2220,6 +2261,8 @@ function changeMainAPI() {
         $('#novel_api').css("display", "none");
         $('#openai_api').css("display", "block");
         $('#openai_max_context_block').css("display", "block");
+        $('#scale_max_context_block').css("display", "none");
+        $('#scale_max_tokens_block').css("display", "none");
         $('#tweak_hr').css("display", "block");
         $('#tweak_container').css("display", "block");
         main_api = 'openai';
@@ -2232,6 +2275,8 @@ function changeMainAPI() {
         $('#openai_api').css("display", "none");
         $('#scale_api').css("display", "block");
         $('#openai_max_context_block').css("display", "none");
+        $('#scale_max_context_block').css("display", "block");
+        $('#scale_max_tokens_block').css("display", "block");
         $('#tweak_hr').css("display", "none");
         $('#tweak_container').css("display", "none");
         main_api = 'scale';
@@ -2368,6 +2413,16 @@ $(document).on('input', '#openai_max_context', function () {
     openai_max_context = parseInt($(this).val());
     $('#openai_max_context_counter').html($(this).val() + ' Tokens');
     var max_contextTimer = setTimeout(saveSettings, 500);
+});
+$(document).on('input', '#scale_max_context', function () {
+    scale_max_context = parseInt($(this).val());
+    $('#scale_max_context_counter').html($(this).val() + ' Tokens');
+    var max_contextTimer = setTimeout(saveSettings, 500);
+});
+$(document).on('input', '#scale_max_tokens', function () {
+    scale_max_tokens = parseInt($(this).val());
+    $('#scale_max_tokens_counter').html($(this).val() + ' Tokens');
+    var max_tokensTimer = setTimeout(saveSettings, 500);
 });
 $(document).on('input', '#openai_max_tokens', function () {
     openai_max_tokens = parseInt($(this).val());
@@ -2588,13 +2643,21 @@ async function getSettings(type) {//timer
                 if (settings.enhance_definitions !== undefined) enhance_definitions = !!settings.enhance_definitions;
                 if (settings.wrap_in_quotes !== undefined) wrap_in_quotes = !!settings.wrap_in_quotes;
                 if (settings.nsfw_first !== undefined) nsfw_first = !!settings.nsfw_first;
-
+                
+                
                 $('#stream_toggle').prop('checked', stream_openai);
-
+                
                 $('#openai_max_context').val(openai_max_context);
                 $('#openai_max_context_counter').html(openai_max_context + ' Tokens');
-
+                
                 $('#openai_max_tokens').val(openai_max_tokens);
+                
+                // Scale max context (supposedly 8k, but 7.5k max because we're using the wrong tokenizer)
+                scale_max_context = settings.scale_max_context ?? 7750;
+                $('#scale_max_context').val(scale_max_context);
+                $('#scale_max_context_counter').html(scale_max_context + ' Tokens');
+                $('#scale_max_tokens').val(scale_max_tokens);
+                $('#scale_max_tokens_counter').html(scale_max_tokens + ' Tokens');
 
                 $('#nsfw_toggle').prop('checked', nsfw_toggle);
                 $('#keep_example_dialogue').prop('checked', keep_example_dialogue);
@@ -2711,6 +2774,8 @@ async function saveSettings(type) {
             nsfw_prompt: nsfw_prompt,
             api_key_scale: api_key_scale,
             api_url_scale: api_url_scale,
+            scale_max_context: scale_max_context,
+            scale_max_tokens: scale_max_tokens,
         }),
         beforeSend: function () {
 

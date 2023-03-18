@@ -20,7 +20,12 @@ Complete the next response in this fictional roleplay chat.
 
 {{ input }}
 ```
-- 💡 Make sure to set the model to GPT4, and increase temperature to around 0.6 - 0.9 to make responses more varied.
+- 💡 Set the model parameters as desired.
+  - **Model:** GPT-4
+  - **Temperature:** ~0.6 - 0.9
+  - **Maximum Tokens:** 400 - 4096
+    - This controls the max length of the AI's responses, NOT the context size. ***If you set this to a very high value, you MUST adjust the "Max Response Size" value in TavernAI's settings to match!***
+    - I recommend 300 - 500 for chat purposes. You don't want the AI sending you 4000 token chat messages.
 - Click "Save New Variant"
 - Go to your new Variant and click Deploy
 ![https://i.imgur.com/5Tuj55L.png](https://i.imgur.com/5Tuj55L.png)

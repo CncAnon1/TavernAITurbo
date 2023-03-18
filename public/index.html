@@ -22,12 +22,12 @@
         //console.log(encode("dsfs").length); // [258, 18798, 995]
     </script>
 	<style>
-	#openai_max_context{
+	#openai_max_context, #scale_max_context, #scale_max_tokens {
 		margin-left: 10px;
 		margin-bottom: 20px;
 	}
 	
-	#openai_max_context_counter{
+	#openai_max_context_counter, #scale_max_context_counter, #scale_max_tokens_counter {
 		margin-bottom: 0px;
 	}
 	
@@ -382,13 +382,35 @@
                 <div id="online_status5">
                     <div id="online_status_indicator5"></div><div id="online_status_text5">No connection...</div>
                 </div>
-                <p style="white-space: normal;">Scale doesn't have a way to confirm that your key is correct. If you see "Valid" here but you still can't send prompts, confirm your key/url.</p>
-                <p style="white-space: normal;"><strong>
-                    Scale supports absolutely no settings, so none of this shit does anything.<br>
+                <p style="white-space: normal;"><strong>IMPORTANT:&nbsp;</strong>
+                    Scale offers no way to check whether your key is correct. If you see "Valid" here but you still can't send prompts,
+                    confirm your key/url.</p>
+                <p style="white-space: normal;"><strong>Context Settings:&nbsp;</strong>If you are using GPT-4, you can select up to
+                    7750
+                    tokens of context. Replies will take
+                    longer to generate.</p>
+                <div id="scale_max_context_block">
+                    <h4>Scale Context Size</h4>
+                    <h5 id="scale_max_context_counter">select</h5>
+                    <input type="range" id="scale_max_context" name="volume" min="512" max="7750" step="1">
+                    <h4>Scale Max Response Length</h4>
+                    <h5 id="scale_max_tokens_counter">select</h5>
+                    <input type="range" id="scale_max_tokens" name="volume" min="100" max="4096" step="1">
+                    <p style="white-space: normal; padding-left:8px;padding-right:8px;margin-top:-12px">
+                        This value must match the Spellbook deployment's
+                        "Maximum Tokens" setting or you may send prompts that are too large.
+                        <br>
+                        <span style="color: darksalmon; font-weight: bold;">
+                            If you don't know what this means, leave it at 400.
+                        </span>
+                    </p>
+                </div>
+                <p style="white-space: normal;"><strong>Model Parameters:&nbsp;</strong>
+                    Scale doesn't support adjusting model parameters from the API.
                     <br>
                     You can set up your own custom scale app to tweak the system prompt and model parameters, then deploy it and replace the `api_scale` URL in server.js with your own.
                 </strong></p>
-                <div style="opacity: 0.5;">
+                <div style=display:none;">
                     <h4>Preset settings</h4><h5>Selecting settings</h5>
                     <select id="settings_perset_scale" class="option_select_right_menu">
                         <option value="gui">Default</option>
