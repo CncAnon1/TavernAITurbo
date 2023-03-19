@@ -4,7 +4,7 @@ quick hack to get tavernai to work with spellbook.scale.com for playing around w
 ---
 
 ## 🚨Important -- Security
-Newer versions of TavernAI are suceptible to a serious vulnerability when loading malicious character cards (https://github.com/TavernAI/TavernAI/issues/93).  This fork is not vulnerable to this particular exploit, but TavernAI's code is a mess and there is always the possibility that there are other undiscovered exploits.
+Some newer versions of TavernAI (1.3.0, 1.3.1) are susceptible to a serious vulnerability when loading malicious character cards (https://github.com/TavernAI/TavernAI/issues/93).  This fork (1.2.8) is not vulnerable to this particular exploit, but TavernAI's code is very messy and there is always the possibility that there are other undiscovered exploits. Use caution when loading character cards from sources you do not trust and verify the content using https://zoltanai.github.io/character-editor/.
 
 For safety, I strongly suggest you do not allow public access to your TavernAI server under any circumstances. This fork is already configured in such a way by default, but you can confirm by checking `whitelistMode = true` in [config.conf](config.conf).  
 
