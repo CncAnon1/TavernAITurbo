@@ -6,4 +6,4 @@ TavernAI의 새로운 버전은 악의적인 캐릭터 카드를 로딩할 때 �
 
 `whitelistMode = false` 로 설정하지 마십시오. 시스템이 다른 방식으로 격리되어 있다는 것을 완전히 확신하는 경우에만 그렇게 하십시오.
 
-대신 https://github.com/luminai-companion/agn-ai를 사용하는 것을 고려해보십시오. 설정이 좀 더 복잡하지만, 훨씬 높은 품질의 소프트웨어입니다.
+대신 https://github.com/luminai-companion/agn-ai 를 사용하는 것을 고려해보십시오. 설정이 좀 더 복잡하지만, 더욱 견고하고 안정적인 소프트웨어입니다.

@@ -10,7 +10,7 @@ For safety, I strongly suggest you do not allow public access to your TavernAI s
 
 Do NOT set `whitelistMode = false` unless you are absolutely certain your system is isolated in another way.
 
-Consider using https://github.com/luminai-companion/agn-ai instead, which while being more complicated to set up, is a much higher quality piece of software.
+Consider using https://github.com/luminai-companion/agn-ai instead, which while being more complicated to set up, is a more robust piece of software.
 
 [🚨중요 -- 보안 (한국어)](security-ko.md) / [🚨Важно -- Безопасность (Русский)](security-ru.md)
 
