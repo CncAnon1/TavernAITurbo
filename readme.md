@@ -1,8 +1,20 @@
 # TavernAI scale spellbook
 quick hack to get tavernai to work with spellbook.scale.com for playing around with GPT4. based off of [cncanon1's](https://github.com/CncAnon1/) existing OpenAI mod.
 
-### **Context size update (17 March 2023)** 
-Now supports full GPT-4 8k context size.  Context size is limited to 7750 tokens in TavernAI to allow space for the system prompt.
+---
+
+## 🚨Important -- Security
+Newer versions of TavernAI are suceptible to a serious vulnerability when loading malicious character cards (https://github.com/TavernAI/TavernAI/issues/93).  This fork is not vulnerable to this particular exploit, but TavernAI's code is a mess and there is always the possibility that there are other undiscovered exploits.
+
+For safety, I strongly suggest you do not allow public access to your TavernAI server under any circumstances. This fork is already configured in such a way by default, but you can confirm by checking `whitelistMode = true` in [config.conf](config.conf).  
+
+Do NOT set `whitelistMode = false` unless you are absolutely certain your system is isolated in another way.
+
+Consider using https://github.com/luminai-companion/agn-ai instead, which while being more complicated to set up, is a much higher quality piece of software.
+
+[🚨중요 -- 보안 (한국어)](security-ko.md) / [🚨Важно -- Безопасность (Русский)](security-ru.md)
+
+---
 
 ## Quickstart
 If you don't want to set up any of the shit below, you can just download it and run. It is preconfigured to connect to a bot.  Just launch `Start.bat` to get started.  Node.js v18 is required. 
