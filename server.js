@@ -1471,21 +1471,41 @@ app.post("/importchat", urlencodedParser, function(request, response){
 
 
 
+const shouldBindToAll = !whitelistMode || whitelist.length > 1;
+const listenHost = shouldBindToAll ? "0.0.0.0" : "127.0.0.1";
 
-
-app.listen(server_port, function() {
-    if(process.env.colab !== undefined){
-        if(process.env.colab == 2){
-            is_colab = true;
-        }
+app.listen(server_port, listenHost, function () {
+  if (process.env.colab !== undefined) {
+    if (process.env.colab == 2) {
+      is_colab = true;
     }
-    console.log('Launching...');
-    if(autorun) open('http://127.0.0.1:'+server_port);
-    console.log('TavernAI started: http://127.0.0.1:'+server_port);
-    if (fs.existsSync('public/characters/update.txt') && !is_colab) {
-        convertStage1();
+  }
+  console.log("Launching...\n");
+  if (!shouldBindToAll) {
+    console.log(
+      "🔒 Binding to loopback interface. External connections will be rejected."
+    );
+  } else {
+    console.log(
+      "🔓 Binding to all interfaces. External connections will be accepted according to the whitelist."
+    );
+    console.warn(
+      "This configuration is not recommended as it may reveal the presence of TavernAI to others, even if it is not accessible."
+    );
+    if (!whitelistMode) {
+      console.error(
+        "🚨 WARNING: Whitelist is disabled. TavernAI will serve requests from any IP address and may leak sensitive information!"
+      );
+      console.error(
+        "If you must allow external connections, please enable the whitelist and add individual trusted IP addresses."
+      );
     }
-
+  }
+  if (autorun) open("http://127.0.0.1:" + server_port);
+  console.log("\nTavernAI started: http://127.0.0.1:" + server_port);
+  if (fs.existsSync("public/characters/update.txt") && !is_colab) {
+    convertStage1();
+  }
 });
 
 //#####################CONVERTING IN NEW FORMAT########################
