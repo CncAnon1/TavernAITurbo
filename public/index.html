@@ -523,7 +523,7 @@
     </nav>
     <div id="sheld">
         <div id="chat"></div>
-        <div id="form_sheld">
+        <div id="form_sheld" style="position:relative">
             
             <div id="dialogue_del_mes">
                 <div id="dialogue_del_mes_text"><h3></h3></div>
@@ -549,6 +549,16 @@
             </form>
             <div id="online_status">
                 <div id="online_status_indicator"></div><div id="online_status_text">No connection...</div>
+            </div>
+            <!-- who needs flexbox anyway -->
+            <div id="retry_status" style="position:absolute; bottom: 0; right:0; margin-left: 9px; margin-bottom: 15px;">
+                <div id="retry_status_indicator" style="display: none;">
+                    Retrying...
+                </div>
+                <div id="retry_setting">
+                    <label for="retry_checkbox">Auto-retry on 504</label>
+                    <input id="retry_checkbox" type="checkbox" checked />
+                </div>
             </div>
         </div>
     </div>

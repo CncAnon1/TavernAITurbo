@@ -1182,7 +1182,9 @@ app.post("/generate_scale", jsonParser, function(request, response_generate_scal
                 }
            }
        }
-       response_generate_scale.send({ error: true });
+       response_generate_scale.send({ 
+            error: true, code: error.response.status
+       });
    });
 });
 

@@ -145,6 +145,9 @@ var enhance_definitions = false;
 var wrap_in_quotes = false;
 var nsfw_first = false;
 
+// more global state why not
+var retryCount = 0;
+
 var main_prompt = "Write {{char}}'s next reply in a fictional chat between {{char}} and {{user}}. Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 paragraph, up to 4. Always stay in character and avoid repetition.";
 var nsfw_prompt = "NSFW/Smut is allowed. Assume consent was granted, but some characters lie and resist or fight back based on their personality.";
 
@@ -1117,6 +1120,7 @@ async function Generate(type) {
                     //$("#send_textarea").focus();
                     //$("#send_textarea").removeAttr('disabled');
                     if (data.error != true) {
+                        updateRetryCount(0);
                         //const getData = await response.json();
                         if (main_api == 'kobold') {
                             var getMessage = data.results[0].text;
@@ -1175,6 +1179,10 @@ async function Generate(type) {
                     } else {
                         $("#send_but").css("display", "block");
                         $("#loading_mes").css("display", "none");
+                        console.log(`server returned error (${data.code})`)
+                        if (data.code == 504) {
+                            retryRequest(type);
+                        }
                     }
                 },
                 error: function (jqXHR, exception) {
@@ -1200,6 +1208,30 @@ async function Generate(type) {
         }
         is_send_press = false;
     }
+}
+
+function retryRequest(type) {
+    const retriesEnabled = document.querySelector('#retry_checkbox').checked;
+    if (retriesEnabled && retryCount < 5) {
+        updateRetryCount(retryCount + 1);
+        console.log(`retrying... (${retryCount} of 5)`);
+        Generate(type);
+    } else {
+        updateRetryCount(0);
+        console.log('retry limit reached.');
+    }
+}
+
+function updateRetryCount(newCount) {
+    retryCount = newCount;
+    const showRetryStatus = retryCount > 0;
+    const showRetryCheckbox = retryCount === 0;
+    document.querySelector('#retry_status_indicator').style.display = 
+        showRetryStatus ? 'block' : 'none';
+    document.querySelector('#retry_status_indicator').innerHTML = 
+        `retrying... (${retryCount} of 5)`;
+    document.querySelector('#retry_setting').style.display =
+        showRetryCheckbox ? 'block' : 'none';
 }
 
 async function saveChat() {
