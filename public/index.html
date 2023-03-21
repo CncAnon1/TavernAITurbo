@@ -397,8 +397,8 @@
                     <h5 id="scale_max_tokens_counter">select</h5>
                     <input type="range" id="scale_max_tokens" name="volume" min="100" max="4096" step="1">
                     <p style="white-space: normal; padding-left:8px;padding-right:8px;margin-top:-12px">
-                        This value must match the Spellbook deployment's
-                        "Maximum Tokens" setting or you may send prompts that are too large.
+                        This value must match the "Maximum Tokens" setting on
+                        Scale.com or you may receive context size errors.
                         <br>
                         <span style="color: darksalmon; font-weight: bold;">
                             If you don't know what this means, leave it at 400.
@@ -406,9 +406,10 @@
                     </p>
                 </div>
                 <p style="white-space: normal;"><strong>Model Parameters:&nbsp;</strong>
-                    Scale doesn't support adjusting model parameters from the API.
+                    Scale Spellbook doesn't support adjusting model parameters from Tavern.
                     <br>
-                    You can set up your own custom scale app to tweak the system prompt and model parameters, then deploy it and replace the `api_scale` URL in server.js with your own.
+                    You can adjust the system prompt and model parameters from the <a href="https://spellbook.scale.com"
+                        target="_blank">Spellbook dashboard</a>.
                 </strong></p>
                 <div style=display:none;">
                     <h4>Preset settings</h4><h5>Selecting settings</h5>

@@ -2652,8 +2652,9 @@ async function getSettings(type) {//timer
                 
                 $('#openai_max_tokens').val(openai_max_tokens);
                 
-                // Scale max context (supposedly 8k, but 7.5k max because we're using the wrong tokenizer)
+                // Scale max context (supposedly 8k, but 7750 max because we're using the wrong tokenizer)
                 scale_max_context = settings.scale_max_context ?? 7750;
+                scale_max_tokens = settings.scale_max_tokens ?? 400;
                 $('#scale_max_context').val(scale_max_context);
                 $('#scale_max_context_counter').html(scale_max_context + ' Tokens');
                 $('#scale_max_tokens').val(scale_max_tokens);

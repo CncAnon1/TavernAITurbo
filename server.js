@@ -1025,10 +1025,14 @@ app.post("/getstatus_scale", jsonParser, function(request, response_getstatus_sc
     };
     client.post(api_url_scale,args, function (data, response) {
         console.log("authing with", api_url_scale);
-        console.log("getstatus_scale response code: ", response.statusCode);
-        console.log("getstatus_scale response data:", data);
-        console.log("you may see response an 'invalid_type' error, that's probably okay");
-        console.log("if you see another error, that's probably not okay");
+        
+        if (data?.[0]?.code == "invalid_type") {
+            console.log("received expected response, assuming authed");
+        } else {
+            console.log("getstatus_scale response code:", response.statusCode);
+            console.log("getstatus_scale response data:", data.toString());
+            console.error("\nERROR: unexpected response. your API key or URL may be invalid.");
+        }
         
         // Scale doesn't really have any way to check status so if this doesn't 
         // emit an error, we can only assume it's authed
@@ -1153,16 +1157,29 @@ app.post("/generate_scale", jsonParser, function(request, response_generate_scal
                });                  
            } else {
                 console.log("generate_scale promise rejected");
+                
                 console.log({
                     message: error.message,
                     method: error.config.method,
                     code: error.code,
                     status: error.response.status,
+                    statusText: error.response.statusText,
                     url: error.config.url,
                     headers: error.config.headers,
                 })
-                console.log("response headers:", JSON.stringify(error.response.headers, null, 2));
-                console.log("response data:", error.response.data);
+                
+                if (error.response.status == 504) {
+                    // Cloudflare kills connection after 60 seconds
+                    // people keep thinking this is a timeout they need to
+                    // increase, but it's entirely on Cloudflare's end
+                    console.error(error.response.statusText);
+                    console.error("Scale is overloaded and your connection was killed by Cloudflare after 60 seconds.");
+                    console.log("you may be able to see the output appear in the Scale dashboard in a few minutes.");
+                    console.log("\x1b[31m%s\x1b[0m", "there is nothing you can do to fix this.");
+                } else {
+                    // just dump the whole response
+                    console.log("response data:", error.response.data);
+                }
            }
        }
        response_generate_scale.send({ error: true });
