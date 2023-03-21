@@ -500,6 +500,13 @@
             <h4>NSFW prompt</h4><h5>Prompt that is used when the NSFW toggle is on</h5>
             <textarea id="nsfw_prompt_textarea" class="custom_textarea" name="nsfw_prompt" placeholder=""></textarea>
             <input id="save_prompts" class="advanced_btn" type="button" value="Save prompt settings">            
+            <div id="retry_setting">
+                <label class="checkbox">
+                    <input id="retry_checkbox" type="checkbox" checked /><span></span>
+                    <h4 style="display: inline-block;"><label for="retry_checkbox">Retry on 504 error</label></h4>
+                    <h5>Automatically retry when a server timeout occurs</h5>
+                </label>
+            </div>
             </div>
         </div>
         <div id="rm_charater_import" class="right_menu" style="display: none;">
@@ -554,10 +561,6 @@
             <div id="retry_status" style="position:absolute; bottom: 0; right:0; margin-left: 9px; margin-bottom: 15px;">
                 <div id="retry_status_indicator" style="display: none;">
                     Retrying...
-                </div>
-                <div id="retry_setting">
-                    <label for="retry_checkbox">Auto-retry on 504</label>
-                    <input id="retry_checkbox" type="checkbox" checked />
                 </div>
             </div>
         </div>
