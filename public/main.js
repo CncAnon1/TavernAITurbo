@@ -2091,7 +2091,7 @@ $("#option_insert_empty_message").click(async function () {
     }
     
     const newMessage = {
-        name: name1,
+        name: name2,
         is_user: false,
         is_name: false,
         send_date: Date.now(),
