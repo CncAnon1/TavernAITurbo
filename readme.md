@@ -1,6 +1,6 @@
-~~it was fun while it lasted, brothers~~ maybe not yet
+~~it was fun while it lasted, brothers~~ maybe not dead yet
 
-![bill](1679371033041221.png) 
+<!-- ![bill](1679371033041221.png)  -->
 <!-- [jake](1679194345068307.gif) -->
 
 # TavernAI scale spellbook

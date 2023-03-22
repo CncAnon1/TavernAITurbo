@@ -2085,6 +2085,24 @@ $("#option_delete_mes").click(function () {
         });
     }
 });
+$("#option_insert_empty_message").click(async function () {
+    if (this_chid === undefined) {
+        return;
+    }
+    
+    const newMessage = {
+        name: name1,
+        is_user: false,
+        is_name: false,
+        send_date: Date.now(),
+        mes: '',
+        mesid: chat.length,
+    };
+    chat[chat.length] = newMessage;
+    
+    addOneMessage(newMessage);
+    await saveChat();
+});
 $("#dialogue_del_mes_cancel").click(function () {
     $('#dialogue_del_mes').css('display', 'none');
     $('#send_form').css('display', css_send_form_display);
