@@ -1,6 +1,7 @@
-it was fun while it lasted, brothers
+~~it was fun while it lasted, brothers~~ maybe not yet
 
-![bill](1679371033041221.png) ![jake](1679194345068307.gif)
+![bill](1679371033041221.png) 
+<!-- [jake](1679194345068307.gif) -->
 
 # TavernAI scale spellbook
 quick hack to get tavernai to work with spellbook.scale.com for playing around with GPT4. based off of [cncanon1's](https://github.com/CncAnon1/) existing OpenAI mod.
